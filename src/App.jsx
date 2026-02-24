@@ -4,6 +4,7 @@ import Layout from './components/Layout.jsx'
 import ChatPage from './pages/ChatPage.jsx'
 import ProfilePage from './pages/ProfilePage.jsx'
 import SettingsPage from './pages/SettingsPage.jsx'
+import PrivacyPage from './pages/PrivacyPage.jsx'
 import './styles/base.css'
 import './styles/layout.css'
 import './styles/sidebar.css'
@@ -19,6 +20,7 @@ function App() {
           <Route path="/" element={<ChatPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

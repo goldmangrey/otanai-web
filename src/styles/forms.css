@@ -1,0 +1,30 @@
+/* Path: src/styles/forms.css */
+.select {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+
+.radio-item,
+.checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  margin-top: 12px;
+}
+
+.radio-item input,
+.checkbox-item input {
+  accent-color: var(--accent);
+}
+
+.radio-item.disabled {
+  color: var(--muted);
+}
+
+.radio-item.disabled input {
+  accent-color: var(--muted);
+}

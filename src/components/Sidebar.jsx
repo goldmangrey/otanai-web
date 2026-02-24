@@ -38,14 +38,9 @@ function Sidebar() {
         <NavLink className="btn btn-ghost btn-full" to="/settings">
           Settings
         </NavLink>
-        <a
-          className="btn btn-link btn-full"
-          href="https://otanai.kz/privacy"
-          target="_blank"
-          rel="noreferrer"
-        >
+        <NavLink className="btn btn-link btn-full" to="/privacy">
           Privacy Policy
-        </a>
+        </NavLink>
       </div>
     </aside>
   )
