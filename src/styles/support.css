@@ -1,0 +1,264 @@
+/* Path: src/styles/support.css */
+.page-subtitle {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.support-page .page-header {
+  align-items: flex-start;
+}
+
+.support-panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.support-thread {
+  min-height: 260px;
+  max-height: 420px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.support-messages {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.support-message-row {
+  display: flex;
+}
+
+.support-message-row.is-user {
+  justify-content: flex-end;
+}
+
+.support-message-row.is-admin {
+  justify-content: flex-start;
+}
+
+.support-message-bubble {
+  max-width: min(560px, 90%);
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: 14px;
+}
+
+.support-message-row.is-admin .support-message-bubble {
+  background: var(--panel-3);
+}
+
+.support-message-time {
+  display: inline-block;
+  margin-top: 6px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.support-input {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+}
+
+.support-textarea {
+  flex: 1;
+  min-height: 44px;
+  max-height: 160px;
+  resize: vertical;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--text);
+  padding: 10px 12px;
+  font-size: 14px;
+}
+
+.support-textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.support-empty {
+  color: var(--muted);
+  font-size: 14px;
+  padding: 12px 0;
+}
+
+.support-error {
+  color: #fca5a5;
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+
+.admin-layout {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 16px;
+}
+
+.admin-sidebar {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  min-height: 520px;
+}
+
+.admin-sidebar-title {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+
+.support-ticket-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
+.support-ticket {
+  text-align: left;
+  background: var(--panel-2);
+  border: 1px solid transparent;
+  border-radius: 12px;
+  padding: 12px;
+  color: var(--text);
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+
+.support-ticket.is-selected {
+  border-color: var(--accent);
+}
+
+.support-ticket-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.support-ticket-id {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.support-ticket-status {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.support-ticket-status.status-open {
+  color: #86efac;
+}
+
+.support-ticket-status.status-closed {
+  color: #fca5a5;
+}
+
+.support-ticket-preview {
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+
+.support-ticket-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.support-ticket-unread {
+  background: #1d4ed8;
+  color: #f9fafb;
+  padding: 2px 6px;
+  border-radius: 999px;
+  font-size: 10px;
+}
+
+.admin-thread {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  min-height: 520px;
+}
+
+.admin-thread-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.admin-thread-title {
+  font-weight: 600;
+}
+
+.admin-thread-subtitle {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.admin-thread-body {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 8px;
+  margin-bottom: 12px;
+}
+
+.settings-hint {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 8px 0 12px;
+}
+
+.admin-access {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.text-input {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  padding: 10px 12px;
+  font-size: 14px;
+}
+
+.error-text {
+  color: #fca5a5;
+}
+
+@media (max-width: 900px) {
+  .admin-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-sidebar,
+  .admin-thread {
+    min-height: auto;
+  }
+}

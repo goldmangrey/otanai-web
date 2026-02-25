@@ -1,6 +1,7 @@
 // Path: src/pages/SettingsPage.jsx
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { setAdminAccess } from '../utils/support.js'
 
 function SettingsPage() {
   const navigate = useNavigate()
@@ -8,10 +9,22 @@ function SettingsPage() {
   const [language, setLanguage] = useState('English')
   const [showTime, setShowTime] = useState(true)
   const [status, setStatus] = useState('')
+  const [adminPassword, setAdminPassword] = useState('')
+  const [adminError, setAdminError] = useState('')
 
   const handleSave = () => {
     setStatus('Settings saved')
     setTimeout(() => setStatus(''), 2000)
+  }
+
+  const handleAdminAccess = () => {
+    if (adminPassword === 'otanai2026') {
+      setAdminAccess(true)
+      setAdminError('')
+      navigate('/admin/support')
+      return
+    }
+    setAdminError('Wrong password')
   }
 
   return (
@@ -69,8 +82,37 @@ function SettingsPage() {
         {status ? <span className="status">{status}</span> : null}
       </div>
 
-      <button className="btn btn-ghost" type="button" onClick={() => navigate('/')}
-      >
+      <div className="settings-section">
+        <h2>Support</h2>
+        <button className="btn btn-ghost" type="button" onClick={() => navigate('/support')}>
+          Contact support
+        </button>
+      </div>
+
+      <div className="settings-section">
+        <h2>Admin panel</h2>
+        <p className="settings-hint">
+          Enter the admin password to access the support operator view.
+        </p>
+        <div className="admin-access">
+          <input
+            className="text-input"
+            type="password"
+            placeholder="Admin password"
+            value={adminPassword}
+            onChange={(event) => {
+              setAdminPassword(event.target.value)
+              setAdminError('')
+            }}
+          />
+          <button className="btn btn-primary" type="button" onClick={handleAdminAccess}>
+            Admin panel
+          </button>
+        </div>
+        {adminError ? <span className="status error-text">{adminError}</span> : null}
+      </div>
+
+      <button className="btn btn-ghost" type="button" onClick={() => navigate('/')}>
         Back to chat
       </button>
     </section>
