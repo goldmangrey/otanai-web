@@ -96,90 +96,149 @@ const policyTextEn = `# OtanAI Privacy Policy
 
 1. General Provisions
 
-1.1. This Privacy Policy (hereinafter referred to as the "Policy") describes the data collected and processed when using the OtanAI application (hereinafter referred to as the "Service"), as well as the purposes and conditions of its processing.
+1.1. This Privacy Policy (the "Policy") explains what information OtanAI collects, how OtanAI uses, stores, transfers, and shares that information, and what choices and rights you have when you use the OtanAI application and related services (the "Service").
 
-1.2. The data controller is Goldman, an individual entrepreneur, located in Astana, Republic of Kazakhstan. For inquiries regarding this data, please contact: yeskendiriskakov@gmail.com. Website: https://otanai.kz.
+1.2. The data controller for the Service is Goldman, an individual entrepreneur located in Astana, Republic of Kazakhstan. Contact: yeskendiriskakov@gmail.com.
 
-1.3. By using the Service, the user confirms that they have read and agree to the Policy.
+1.3. By creating an account, accessing, or using the Service, you acknowledge that you have read this Policy.
 
-2. What data do we collect
+1.4. Certain features of the Service use artificial intelligence ("AI") tools and providers. Before any data is sent from the app to third-party AI services, the app requests your permission through an in-app consent screen.
 
-2.1. Account data
+2. What Data We Collect
 
-We may collect data necessary for registration and sign-in: email address, name (if provided), phone number (if used), and Apple/Google sign-in data (identifier and basic information you have authorized to share).
+2.1. Account Data
+We may collect account and profile information that you provide or authorize us to receive, including your email address, name, phone number if provided, and sign-in information associated with Apple Sign-In or Google Sign-In.
 
 2.2. Identifiers
-
-We may process technical identifiers, such as Firebase UID, RevenueCat AppUserID, and device/app identifiers, required for authentication, subscriptions, and security.
+We may collect or generate identifiers needed to operate the Service, including Firebase user ID, RevenueCat App User ID, device or app instance identifiers, and similar identifiers used for authentication, subscription management, fraud prevention, security, and service reliability.
 
 2.3. User Content
+We collect and process content that you choose to submit through the Service, including chat messages, prompts, uploaded files, uploaded images, attachments, and other content you provide in connection with app features.
 
-The Service processes user content you send in chat: text messages, images, files, and other attachments. Such content may be stored in a database and/or cloud storage (e.g., Firestore/Storage) to ensure the functionality of the Service.
+2.4. AI-Related Content
+If you use AI features, we may process the specific data required to fulfill your request, including message text, prompts, extracted user preferences/facts to maintain chat context, uploaded files, uploaded images, attachments, language settings, and limited technical metadata required to process AI requests and deliver responses.
 
-2.4. Technical Data
+2.5. Technical, App, and Device Information
+We may collect technical and diagnostic information about your use of the Service, such as app version, device type, operating system information, crash data, performance data, usage events, request diagnostics, and limited metadata needed to maintain, secure, and improve the Service.
 
-We may collect technical data necessary for stable operation and quality improvement: error logs, feature usage data, and performance information. If analytics is enabled, it is used in aggregate form and is not intended to directly identify you unless necessary.
+2.6. Subscription and Billing Data
+We may process information related to subscriptions, entitlements, billing state, and purchase restoration status through the App Store, RevenueCat, and related systems. We do not receive your full payment card details from Apple.
 
-3. How We Use Data
+3. How Data Is Collected
 
-3.1. To provide the Service: account creation and management, storing conversation history, message processing, and data synchronization between devices.
+3.1. We collect data when you create an account, sign in, manage your profile, or otherwise use account features.
 
-3.2. To ensure quality and security: detect errors, prevent abuse, and improve performance.
+3.2. We collect data when you use AI chat or other AI-powered features, including when you type messages, submit prompts, or request AI-generated responses.
 
-3.3. To improve AI responses and functionality: Your messages and content may be processed to improve the quality of the service and models, if this is required by OtanAI's product logic and does not conflict with applicable law.
+3.3. We collect data when you upload files, images, or other attachments for processing within the Service.
 
-3.4. To process payments and subscriptions: Information required to manage subscriptions through the App Store/RevenueCat, including subscription status and technical identifiers.
+3.4. We collect data when you use app functionality generally, including subscription, settings, support, and content features.
 
-4. AI Content and User Content
+3.5. We collect technical events, diagnostics, and subscription-related events automatically when necessary to operate the Service, process purchases, maintain security, investigate abuse, and support reliability.
 
-4.1. The user independently provides text, files, and images in the chat. This data may be processed using AI models to generate responses.
+4. How We Use Data
 
-4.2. It is prohibited to send the following to the Service:
+4.1. To provide the Service
+We use data to create and manage accounts, authenticate users, sync content, store history where applicable, and provide requested app functionality.
 
-- Passport and other identification documents;
-- Bank card details, passwords, and secret codes;
-- Medical information, health information, or diagnosis information, unless specifically required by the service's operating mode;
-- other sensitive data, the disclosure of which could cause harm.
+4.2. To operate AI features
+We use submitted AI-related data to operate AI chat and related features, generate responses, analyze files or images submitted to AI features, and return the requested results to you.
 
-4.3. AI responses are generated automatically and may be inaccurate. They do not constitute professional medical, legal, financial, or other advice.
+4.3. To process files and images
+If you upload files, images, or attachments to AI-enabled features, we may process those materials to fulfill the feature you selected.
 
-5. Transfer of Data to Third Parties
+4.4. To support subscriptions and billing
+We use relevant data to manage subscriptions, entitlements, restore purchases, prevent billing abuse, and support payment-related workflows.
 
-5.1. We may transfer data to infrastructure and service providers necessary for the app to function:
+4.5. To maintain security and reliability
+We use data to secure the Service, detect fraud or abuse, troubleshoot issues, monitor performance, enforce limits, maintain reliability, and protect users and the Service.
 
-- Firebase (Google) — authentication, database, storage;
-- RevenueCat — subscription and billing management;
-- other services that are used strictly as needed.
+4.6. To improve the Service
+Where permitted by law, we may use data, including AI-related usage information and limited diagnostics, to improve service quality, performance, safety, and user experience.
 
-5.2. We do not sell personal data to third parties for marketing purposes without the user's explicit consent.
+5. AI Features and Consent
 
-6. Data Storage and Protection
+5.1. Before any data is sent from the app to third-party AI services, the app requests your permission through an in-app consent screen.
 
-6.1. Data is stored on servers and in cloud infrastructure used by OtanAI and its providers (e.g., Google Cloud/Firebase). The storage geography may include countries outside your place of residence.
+5.2. The in-app consent screen explains what data is sent, who receives it, and why it is sent.
 
-6.2. We implement reasonable technical and organizational security measures, including access control, encryption of data transmission, access rights restrictions, monitoring, and backup.
+5.3. If you use AI features, the following data may be sent for processing: your message text, prompts, extracted user preferences/facts to maintain chat context, uploaded files, uploaded images, attachments, language settings, and limited technical metadata required to process AI requests and deliver responses.
 
-7. Data Retention Period
+5.4. AI-related data may be sent to OtanAI servers and third-party AI providers, including Google Gemini, solely to provide the AI functionality you request.
 
-7.1. Data is retained for as long as necessary to provide the Service and fulfill obligations to the user, or until consent is revoked or the account is deleted, unless otherwise required by law.
+5.5. The purpose of this transfer is to generate AI responses, process submitted files or images, and improve the Service where permitted by law.
 
-8. User Rights
+5.6. If you decline consent, AI features remain unavailable. The app does not send AI requests to third-party AI services unless you have granted consent.
 
-8.1. The user has the right to access their data and request correction or deletion.
+5.7. Your consent choice is stored locally in the app and used to enforce whether AI requests may be sent.
 
-8.2. Account deletion can be accessed through the app (if implemented) or by contacting support: yeskendiriskakov@gmail.com.
+5.8. AI-generated responses are produced automatically and may be incomplete, inaccurate, or inappropriate. They do not constitute medical, legal, financial, or other professional advice.
 
-9. Children
+5.9. You should avoid submitting highly sensitive information unless strictly necessary. This includes identity documents, passwords, one-time codes, payment card details, medical records, and other highly confidential information.
 
-9.1. The Service is not intended for persons under 18 years of age. The age limit may be changed depending on legal requirements and product settings.
+5.10. Explicit Data Protection: We strictly DO NOT share your account details, including your name, email address, phone number, or authentication credentials, with Google Gemini or any other third-party AI provider. Only the specific context requested (such as message text or files) is transmitted.
 
-10. Contacts
+6. Sharing with Third Parties
 
-10.1. For questions regarding data processing, please contact yeskendiriskakov@gmail.com.
+6.1. We may share or transfer data with service providers and processors that support operation of the Service, including:
 
-11. Policy Changes
+OtanAI servers, to receive, route, store, and process requests;
 
-11.1. We may update the Policy. The new version will take effect upon publication in the app and/or on the website: https://otanai.kz.
+Firebase / Google, for authentication, database, cloud storage, and related infrastructure;
+
+RevenueCat, for subscription, entitlement, and billing management;
+
+Google Gemini, when used to process AI-related content submitted through the Service;
+
+other infrastructure or security providers, strictly as needed to operate, secure, monitor, or support the Service.
+
+6.2. We do not sell your personal data to third parties for advertising or marketing purposes without your explicit consent.
+
+6.3. Third-party AI providers, including Google Gemini, process user data to provide AI functionality. We strictly require these AI providers to provide the same or an equal level of privacy and security protection for user data as stated in this Privacy Policy.
+
+6.4. Third-party providers may process data in accordance with their own legal obligations and service terms when acting as independent service providers, but we require appropriate contractual, technical, or organizational protections where applicable.
+
+7. Storage and Protection
+
+7.1. Data may be stored on servers and cloud infrastructure used by OtanAI and its providers, including systems located outside your country or region of residence.
+
+7.2. We apply reasonable technical and organizational safeguards designed to protect personal data, including access controls, authentication controls, restricted permissions, encryption in transit where applicable, monitoring, and backups.
+
+7.3. No method of transmission, storage, or processing is completely secure. We cannot guarantee absolute security.
+
+8. Retention
+
+8.1. We retain personal data for as long as reasonably necessary to provide the Service, comply with legal obligations, resolve disputes, enforce agreements, maintain records, or protect the Service.
+
+8.2. AI-related content, account data, technical data, and subscription records may be retained for different periods depending on operational necessity, legal requirements, and user actions such as account deletion.
+
+8.3. We may delete or anonymize data when it is no longer needed for the purposes described in this Policy, subject to legal or operational requirements.
+
+9. Your Rights
+
+9.1. Subject to applicable law, you may have the right to request access to your personal data, correction of inaccurate data, deletion of data, or restriction of certain processing.
+
+9.2. You may withdraw consent for AI-related data sharing by changing your choice in the app where available. If you withdraw or decline consent, AI features will remain unavailable unless consent is granted again.
+
+9.3. You may request account deletion where supported in the app or by contacting us at yeskendiriskakov@gmail.com.
+
+10. Children
+
+10.1. The Service is not intended for children under 18 years of age unless a different minimum age is required by applicable law or explicitly specified for a particular offering.
+
+10.2. If we become aware that personal data has been collected from a child in violation of applicable law, we will take reasonable steps to delete it.
+
+11. Contact
+
+11.1. For privacy, data protection, or policy questions, contact: yeskendiriskakov@gmail.com.
+
+12. Policy Changes
+
+12.1. We may update this Policy from time to time to reflect changes in the Service, legal requirements, or our data practices.
+
+12.2. The current version made available in the app or on the website will apply from its effective date.
+
+12.3. Where required by law, we will provide additional notice of material changes.
 `
 
 function PrivacyPage() {
