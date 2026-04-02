@@ -102,7 +102,7 @@ const policyTextEn = `# OtanAI Privacy Policy
 
 1.3. By creating an account, accessing, or using the Service, you acknowledge that you have read this Policy.
 
-1.4. Certain features of the Service use artificial intelligence ("AI") tools and providers. Before any data is sent from the app to third-party AI services, the app requests your permission through an in-app consent screen.
+1.4. Certain features of the Service use artificial intelligence ("AI") tools. Before any data is sent from the app to AI data processors, the app requests your permission through an in-app consent screen.
 
 2. What Data We Collect
 
@@ -158,17 +158,17 @@ Where permitted by law, we may use data, including AI-related usage information 
 
 5. AI Features and Consent
 
-5.1. Before any data is sent from the app to third-party AI services, the app requests your permission through an in-app consent screen.
+5.1. Before any data is sent from the app to AI data processors, the app requests your permission through an in-app consent screen.
 
 5.2. The in-app consent screen explains what data is sent, who receives it, and why it is sent.
 
 5.3. If you use AI features, the following data may be sent for processing: your message text, prompts, extracted user preferences/facts to maintain chat context, uploaded files, uploaded images, attachments, language settings, and limited technical metadata required to process AI requests and deliver responses.
 
-5.4. AI-related data may be sent to OtanAI servers and third-party AI providers, including Google Gemini, solely to provide the AI functionality you request.
+5.4. AI-related data may be sent to OtanAI servers and AI data processors, including Google Gemini, solely to provide the AI functionality you request.
 
 5.5. The purpose of this transfer is to generate AI responses, process submitted files or images, and improve the Service where permitted by law.
 
-5.6. If you decline consent, AI features remain unavailable. The app does not send AI requests to third-party AI services unless you have granted consent.
+5.6. If you decline consent, AI features remain unavailable. The app does not send AI requests to AI data processors unless you have granted consent.
 
 5.7. Your consent choice is stored locally in the app and used to enforce whether AI requests may be sent.
 
@@ -176,9 +176,11 @@ Where permitted by law, we may use data, including AI-related usage information 
 
 5.9. You should avoid submitting highly sensitive information unless strictly necessary. This includes identity documents, passwords, one-time codes, payment card details, medical records, and other highly confidential information.
 
-5.10. Explicit Data Protection: We strictly DO NOT share your account details, including your name, email address, phone number, or authentication credentials, with Google Gemini or any other third-party AI provider. Only the specific context requested (such as message text or files) is transmitted.
+5.10. Explicit Data Protection: We strictly DO NOT share your account details, including your name, email address, phone number, or authentication credentials, with Google Gemini or any other AI data processor. Only the specific context requested (such as message text or files) is transmitted.
 
-6. Sharing with Third Parties
+5.11. Model Training: Google Gemini acts exclusively as a data processor. Google does not use your messages, prompts, context, or files to train their foundational AI models or to improve their products.
+
+6. Sharing with Third Parties and Processors
 
 6.1. We may share or transfer data with service providers and processors that support operation of the Service, including:
 
@@ -188,15 +190,15 @@ Firebase / Google, for authentication, database, cloud storage, and related infr
 
 RevenueCat, for subscription, entitlement, and billing management;
 
-Google Gemini, when used to process AI-related content submitted through the Service;
+Google Gemini, acting strictly as a data processor, when used to process AI-related content submitted through the Service;
 
 other infrastructure or security providers, strictly as needed to operate, secure, monitor, or support the Service.
 
 6.2. We do not sell your personal data to third parties for advertising or marketing purposes without your explicit consent.
 
-6.3. Third-party AI providers, including Google Gemini, process user data to provide AI functionality. We strictly require these AI providers to provide the same or an equal level of privacy and security protection for user data as stated in this Privacy Policy.
+6.3. AI data processors, including Google Gemini, process user data to provide AI functionality. We strictly require these processors to provide the same or an equal level of privacy and security protection for user data as stated in this Privacy Policy.
 
-6.4. Third-party providers may process data in accordance with their own legal obligations and service terms when acting as independent service providers, but we require appropriate contractual, technical, or organizational protections where applicable.
+6.4. Processors may process data in accordance with their own legal obligations and service terms when acting as independent service providers, but we require appropriate contractual, technical, or organizational protections where applicable.
 
 7. Storage and Protection
 
