@@ -1,6 +1,7 @@
 // Path: src/pages/PrivacyPage.jsx
-import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { languages } from '../i18n/translations.js'
+import { useI18n } from '../i18n/useI18n.js'
 
 const policyTextRu = `# Политика конфиденциальности OtanAI
 
@@ -90,6 +91,71 @@ const policyTextRu = `# Политика конфиденциальности Ot
 11. Изменения политики
 
 11.1. Мы можем обновлять Политику. Новая редакция вступает в силу с момента публикации в приложении и/или на сайте: https://otanai.kz.
+`
+
+const policyTextKk = `# OtanAI құпиялық саясаты
+
+1. Жалпы ережелер
+
+1.1. Бұл саясат OtanAI сервисі қандай деректерді жинайтынын, оларды қалай қолданатынын, сақтайтынын және қорғайтынын түсіндіреді.
+
+1.2. Деректер операторы: ИП Goldman, Қазақстан Республикасы, Астана қаласы. Байланыс: yeskendiriskakov@gmail.com.
+
+2. Біз қандай деректерді жинаймыз
+
+2.1. Аккаунт деректері: email, аты, телефон нөмірі, Apple/Google арқылы кіру идентификаторлары.
+
+2.2. Техникалық идентификаторлар: Firebase UID, RevenueCat AppUserID және сервис жұмысына қажет құрылғы/қолданба идентификаторлары.
+
+2.3. Чатқа жіберілген мәтіндер, файлдар, суреттер және басқа пайдаланушы контенті.
+
+2.4. Қате логтары, функцияларды қолдану деректері және өнім сапасын жақсартуға қажет техникалық ақпарат.
+
+3. Деректерді қалай қолданамыз
+
+3.1. Аккаунтты жүргізу, чат тарихын сақтау, хабарламаларды өңдеу және құрылғылар арасында синхрондау үшін.
+
+3.2. Қауіпсіздік, қателерді анықтау, өнім сапасын жақсарту және теріс пайдалануды болдырмау үшін.
+
+3.3. Жазылым мен төлемдерді басқару үшін.
+
+4. AI және пайдаланушы контенті
+
+4.1. AI жауаптарын жасау үшін сұраудағы мәтін және қажет техникалық деректер өңделуі мүмкін.
+
+4.2. Паспорт, банк картасы, құпиясөз, медициналық құпия немесе басқа сезімтал деректерді чатқа жібермеуді сұраймыз.
+
+4.3. AI жауаптары автоматты түрде жасалады және кәсіби медициналық, заңдық немесе қаржылық кеңес болып саналмайды.
+
+5. Үшінші тараптарға беру
+
+5.1. Деректер Firebase/Google, RevenueCat және сервис жұмысына қажет басқа провайдерлер арқылы өңделуі мүмкін.
+
+5.2. Біз жеке деректерді маркетинг мақсатында үшінші тараптарға сатпаймыз.
+
+6. Сақтау және қорғау
+
+6.1. Деректер сервис көрсетуге қажет мерзім ішінде немесе заң талап еткен уақытқа дейін сақталады.
+
+6.2. Біз қолжетімді техникалық және ұйымдастырушылық қауіпсіздік шараларын қолданамыз.
+
+7. Пайдаланушы құқықтары
+
+7.1. Сіз деректеріңізге қол жеткізу, түзету немесе өшіру туралы сұрау жібере аласыз.
+
+7.2. Аккаунтты өшіру қолданба ішінде немесе қолдау қызметі арқылы сұралуы мүмкін: yeskendiriskakov@gmail.com.
+
+8. Балалар
+
+8.1. Сервис 18 жасқа толмаған тұлғаларға арналмаған.
+
+9. Байланыс
+
+9.1. Деректерді өңдеу сұрақтары бойынша: yeskendiriskakov@gmail.com.
+
+10. Өзгерістер
+
+10.1. Саясат жаңартылуы мүмкін. Жаңа нұсқа қолданбада немесе https://otanai.kz сайтында жарияланған сәттен бастап күшіне енеді.
 `
 
 const policyTextEn = `# OtanAI Privacy Policy
@@ -245,28 +311,25 @@ other infrastructure or security providers, strictly as needed to operate, secur
 
 function PrivacyPage() {
   const navigate = useNavigate()
-  const [language, setLanguage] = useState('en')
-  const policyText = language === 'ru' ? policyTextRu : policyTextEn
+  const { language, setLanguage, t } = useI18n()
+  const policyTextByLanguage = { kk: policyTextKk, ru: policyTextRu, en: policyTextEn }
+  const policyText = policyTextByLanguage[language] || policyTextRu
 
   return (
     <section className="page">
       <header className="page-header">
-        <h1>Privacy Policy</h1>
+        <h1>{t('privacyPolicy')}</h1>
         <div className="policy-toggle">
-          <button
-            className={`btn btn-ghost ${language === 'ru' ? 'is-active' : ''}`}
-            type="button"
-            onClick={() => setLanguage('ru')}
-          >
-            Русский
-          </button>
-          <button
-            className={`btn btn-ghost ${language === 'en' ? 'is-active' : ''}`}
-            type="button"
-            onClick={() => setLanguage('en')}
-          >
-            English
-          </button>
+          {languages.map((item) => (
+            <button
+              key={item.code}
+              className={`btn btn-ghost ${language === item.code ? 'is-active' : ''}`}
+              type="button"
+              onClick={() => setLanguage(item.code)}
+            >
+              {item.label}
+            </button>
+          ))}
         </div>
       </header>
 
@@ -304,11 +367,11 @@ function PrivacyPage() {
           target="_blank"
           rel="noreferrer"
         >
-          Open on website
+          {t('openOnWebsite')}
         </a>
         <button className="btn btn-ghost" type="button" onClick={() => navigate('/')}
         >
-          Back to chat
+          {t('backToChat')}
         </button>
       </div>
     </section>

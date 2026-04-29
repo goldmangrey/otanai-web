@@ -1,0 +1,27 @@
+:root {
+    --shell-bg: #04060c;
+    --shell-text: rgba(255, 255, 255, 0.94);
+    --shell-muted: rgba(215, 220, 240, 0.62);
+    --shell-muted-strong: rgba(228, 232, 245, 0.84);
+    --shell-border: rgba(255, 255, 255, 0.12);
+    --shell-border-strong: rgba(169, 132, 255, 0.2);
+    --shell-overlay: rgba(6, 8, 16, 0.46);
+    --shell-sidebar: rgba(8, 10, 20, 0.46);
+    --shell-sidebar-deep: rgba(7, 9, 18, 0.56);
+    --shell-card: rgba(10, 12, 24, 0.32);
+    --shell-card-deep: rgba(10, 12, 24, 0.4);
+    --shell-composer: rgba(12, 14, 28, 0.36);
+    --shell-pill: rgba(10, 12, 24, 0.24);
+    --shell-pill-hover: rgba(18, 21, 38, 0.34);
+    --shell-shadow: 0 18px 56px rgba(0, 0, 0, 0.2);
+    --shell-shadow-soft: 0 10px 32px rgba(0, 0, 0, 0.16);
+    --shell-glow: 0 0 0 1px rgba(255, 255, 255, 0.03), 0 12px 34px rgba(76, 29, 149, 0.06);
+    --shell-accent: #8b5cf6;
+    --shell-accent-2: #6366f1;
+    --shell-accent-3: #a78bfa;
+    --shell-scroll-track: rgba(255, 255, 255, 0.04);
+    --shell-scroll-thumb: rgba(255, 255, 255, 0.18);
+    --shell-scroll-thumb-hover: rgba(255, 255, 255, 0.28);
+    --shell-blur-bg: 17px;
+    --shell-blur-surface: 20px;
+}

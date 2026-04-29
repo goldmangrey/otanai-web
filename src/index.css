@@ -3,14 +3,25 @@
   color-scheme: dark;
 }
 
+html,
+body,
+#root {
+  height: 100%;
+  min-height: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
 * {
   box-sizing: border-box;
 }
 
 body {
   margin: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
 }
 
 #root {
-  min-height: 100vh;
+  min-height: 100%;
 }

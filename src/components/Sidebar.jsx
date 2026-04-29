@@ -1,45 +1,44 @@
-// Path: src/components/Sidebar.jsx
 import { NavLink } from 'react-router-dom'
+import { useI18n } from '../i18n/useI18n.js'
 
-const mockChats = [
-  { id: 'c1', title: 'Chat about math' },
-  { id: 'c2', title: 'Travel ideas' },
-  { id: 'c3', title: 'Draft a resume' },
-  { id: 'c4', title: 'Marketing copy' },
-  { id: 'c5', title: 'Project planning' }
+const navItems = [
+  { to: '/', labelKey: 'navChat' },
+  { to: '/profile', labelKey: 'navProfile' },
+  { to: '/settings', labelKey: 'navSettings' },
+  { to: '/support', labelKey: 'navSupport' },
+  { to: '/privacy', labelKey: 'navPrivacy' }
 ]
 
 function Sidebar() {
+  const { t } = useI18n()
+
   return (
-    <aside className="sidebar">
-      <div className="sidebar-header">
-        <div className="app-name">otan ai</div>
-        <button className="btn btn-primary btn-full" type="button">
-          New chat
-        </button>
+    <aside className="app-sidebar">
+      <div className="app-sidebar__brand">
+        <div className="app-sidebar__logo">O</div>
+        <div>
+          <div className="app-sidebar__eyebrow">OtanAI</div>
+          <div className="app-sidebar__title">{t('controlPanel')}</div>
+        </div>
       </div>
 
-      <div className="sidebar-section">
-        <div className="sidebar-section-title">Chats</div>
-        <ul className="chat-list">
-          {mockChats.map((chat) => (
-            <li key={chat.id} className="chat-list-item">
-              <span className="chat-icon">●</span>
-              <span className="chat-title">{chat.title}</span>
-            </li>
-          ))}
-        </ul>
-      </div>
+      <nav className="app-sidebar__nav" aria-label="Primary">
+        {navItems.map((item) => (
+          <NavLink
+            key={item.to}
+            className={({ isActive }) =>
+              `app-sidebar__link ${isActive ? 'is-active' : ''}`
+            }
+            to={item.to}
+          >
+            {t(item.labelKey)}
+          </NavLink>
+        ))}
+      </nav>
 
-      <div className="sidebar-footer">
-        <NavLink className="btn btn-ghost btn-full" to="/profile">
-          Profile
-        </NavLink>
-        <NavLink className="btn btn-ghost btn-full" to="/settings">
-          Settings
-        </NavLink>
-        <NavLink className="btn btn-link btn-full" to="/privacy">
-          Privacy Policy
+      <div className="app-sidebar__footer">
+        <NavLink className="app-sidebar__support-link" to="/admin/support">
+          {t('navAdminSupport')}
         </NavLink>
       </div>
     </aside>

@@ -74,9 +74,7 @@ function AdminSupportPage() {
         setTickets(nextTickets)
         setLoadingTickets(false)
 
-        if (!selectedTicket && nextTickets.length > 0) {
-          setSelectedTicket(nextTickets[0])
-        }
+        setSelectedTicket((currentTicket) => currentTicket || nextTickets[0] || null)
       },
       (err) => {
         console.error(err)
@@ -90,11 +88,9 @@ function AdminSupportPage() {
 
   useEffect(() => {
     if (!selectedTicket) {
-      setMessages([])
       return
     }
 
-    setLoadingMessages(true)
     messagesUnsubRef.current?.()
 
     const messagesRef = collection(db, SUPPORT_COLLECTION, selectedTicket.id, 'messages')
@@ -210,6 +206,12 @@ function AdminSupportPage() {
     return `Support Admin Panel · ${selectedTicket.shortId}`
   }, [selectedTicket])
 
+  const handleSelectTicket = (ticket) => {
+    setMessages([])
+    setLoadingMessages(Boolean(ticket))
+    setSelectedTicket(ticket)
+  }
+
   return (
     <section className="page admin-page">
       <header className="page-header">
@@ -230,7 +232,7 @@ function AdminSupportPage() {
             <SupportTicketList
               tickets={tickets}
               selectedId={selectedTicket?.id}
-              onSelect={setSelectedTicket}
+              onSelect={handleSelectTicket}
             />
           )}
         </aside>

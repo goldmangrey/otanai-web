@@ -2,6 +2,7 @@
 import { useMemo, useState } from 'react'
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore'
 import { db } from '../firebase.js'
+import { useI18n } from '../i18n/useI18n.js'
 
 const SUPPORT_REQUESTS_COLLECTION = 'webSupportRequests'
 const PRIVACY_POLICY_URL = 'https://otanai.kz/privacy'
@@ -10,7 +11,7 @@ const TERMS_OF_USE_URL = 'https://otanai.kz/terms'
 const CONTACT_ITEMS = [
   {
     label: 'Phone',
-    value: '87083180696',
+    value: '+7 708 318 06 96',
     href: 'tel:87083180696'
   },
   {
@@ -24,35 +25,11 @@ const CONTACT_ITEMS = [
   },
   {
     label: 'Address',
-    value: 'Офис г.Астана Айтматов 40/2'
+    value: 'Office: Aitmatov 40/2, Astana'
   },
   {
     label: 'Response time',
     value: 'We respond within 24 hours'
-  }
-]
-
-const FAQ_ITEMS = [
-  {
-    question: 'How to cancel subscription?',
-    answer: 'Manage it via iPhone Settings > Apple ID > Subscriptions.'
-  },
-  {
-    question: 'Why is my limit reached?',
-    answer: 'Daily limits reset at 00:00 (Astana time). Upgrade to Pro for unlimited access.'
-  },
-  {
-    question: 'Is my data private?',
-    answer:
-      "Yes, we use Google Gemini as a Data Processor. We don't use your data to train AI models."
-  },
-  {
-    question: 'How to Restore Purchases?',
-    answer: 'Use the "Restore Purchases" button in the App Settings.'
-  },
-  {
-    question: 'Tez vs Pro modes?',
-    answer: 'Tez is for speed; Pro is for complex tasks and high-quality image generation.'
   }
 ]
 
@@ -166,6 +143,7 @@ const faqAnswerStyles = {
 }
 
 function SupportPage() {
+  const { t } = useI18n()
   const [email, setEmail] = useState('')
   const [message, setMessage] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -174,18 +152,38 @@ function SupportPage() {
 
   const trimmedEmail = email.trim()
   const trimmedMessage = message.trim()
+  const contactItems = useMemo(
+    () => [
+      { ...CONTACT_ITEMS[0], label: t('phone') },
+      { ...CONTACT_ITEMS[1], label: t('email') },
+      { ...CONTACT_ITEMS[2], label: t('legalName') },
+      { ...CONTACT_ITEMS[3], label: t('address'), value: t('officeAddress') },
+      { ...CONTACT_ITEMS[4], label: t('responseTime'), value: t('responseWithin24') }
+    ],
+    [t]
+  )
+  const faqItems = useMemo(
+    () => [
+      { question: t('faqCancelQ'), answer: t('faqCancelA') },
+      { question: t('faqLimitQ'), answer: t('faqLimitA') },
+      { question: t('faqPrivateQ'), answer: t('faqPrivateA') },
+      { question: t('faqRestoreQ'), answer: t('faqRestoreA') },
+      { question: t('faqModesQ'), answer: t('faqModesA') }
+    ],
+    [t]
+  )
 
   const emailError = useMemo(() => {
-    if (!trimmedEmail) return 'Email is required.'
-    if (!EMAIL_REGEX.test(trimmedEmail)) return 'Please enter a valid email address.'
+    if (!trimmedEmail) return t('emailRequired')
+    if (!EMAIL_REGEX.test(trimmedEmail)) return t('emailInvalid')
     return ''
-  }, [trimmedEmail])
+  }, [trimmedEmail, t])
 
   const messageError = useMemo(() => {
-    if (!trimmedMessage) return 'Message is required.'
-    if (trimmedMessage.length < 10) return 'Message must be at least 10 characters.'
+    if (!trimmedMessage) return t('messageRequired')
+    if (trimmedMessage.length < 10) return t('messageTooShort')
     return ''
-  }, [trimmedMessage])
+  }, [trimmedMessage, t])
 
   const handleSubmit = async (event) => {
     event.preventDefault()
@@ -209,7 +207,7 @@ function SupportPage() {
       setShowSuccessModal(true)
     } catch (err) {
       console.error(err)
-      setError('Failed to send message. Please try again.')
+      setError(t('sendFailed'))
     } finally {
       setSubmitting(false)
     }
@@ -227,10 +225,9 @@ function SupportPage() {
       <section className="page support-page">
         <header className="page-header">
           <div>
-            <h1>Support</h1>
+            <h1>{t('support')}</h1>
             <p className="page-subtitle">
-              Contact us for app support, billing questions, subscription help, and feature
-              requests.
+              {t('supportSubtitle')}
             </p>
           </div>
         </header>
@@ -239,17 +236,16 @@ function SupportPage() {
           <div style={stackStyles}>
             <div className="support-panel">
               <div style={{ marginBottom: '4px' }}>
-                <h2>Send a Message</h2>
+                <h2>{t('sendSupportMessage')}</h2>
                 <p className="page-subtitle">
-                  Use the form below for support requests, billing issues, subscription questions,
-                  or general feedback.
+                  {t('supportFormHint')}
                 </p>
               </div>
 
               <form onSubmit={handleSubmit} style={formGridStyles} noValidate>
                 <div style={fieldStyles}>
                   <label htmlFor="support-email" style={labelStyles}>
-                    Email
+                    {t('email')}
                   </label>
                   <input
                     id="support-email"
@@ -267,20 +263,20 @@ function SupportPage() {
 
                 <div style={fieldStyles}>
                   <label htmlFor="support-message" style={labelStyles}>
-                    Message
+                    {t('message')}
                   </label>
                   <textarea
                     id="support-message"
                     className="support-textarea"
                     value={message}
                     onChange={(event) => setMessage(event.target.value)}
-                    placeholder="Describe your issue, account question, or request in detail."
+                    placeholder={t('supportMessagePlaceholder')}
                     minLength={10}
                     rows={8}
                     required
                     aria-invalid={Boolean(message && messageError)}
                   />
-                  <div style={helperStyles}>Minimum 10 characters.</div>
+                  <div style={helperStyles}>{t('minChars')}</div>
                   {message && messageError ? (
                     <div className="support-error">{messageError}</div>
                   ) : null}
@@ -290,7 +286,7 @@ function SupportPage() {
 
                 <div>
                   <button className="btn btn-primary" type="submit" disabled={submitting}>
-                    {submitting ? 'Sending...' : 'Send Message'}
+                    {submitting ? t('sending') : t('sendSupportMessage')}
                   </button>
                 </div>
               </form>
@@ -299,24 +295,24 @@ function SupportPage() {
             <div className="support-panel">
               <div style={{ display: 'grid', gap: '14px' }}>
                 <div>
-                  <h2>Contact Information</h2>
+                  <h2>{t('contactInfo')}</h2>
                   <p className="page-subtitle">
-                    Official support contact details for OtanAI app users and App Store review.
+                    {t('contactInfoHint')}
                   </p>
                 </div>
 
                 <div style={contactListStyles}>
-                  {CONTACT_ITEMS.map((item) => (
+                  {contactItems.map((item) => (
                     <div
                       key={item.label}
                       style={{
                         ...contactRowStyles,
                         borderBottom:
-                          item.label === CONTACT_ITEMS[CONTACT_ITEMS.length - 1].label
+                          item.label === contactItems[contactItems.length - 1].label
                             ? 'none'
                             : contactRowStyles.borderBottom,
                         paddingBottom:
-                          item.label === CONTACT_ITEMS[CONTACT_ITEMS.length - 1].label ? 0 : '12px'
+                          item.label === contactItems[contactItems.length - 1].label ? 0 : '12px'
                       }}
                     >
                       <div style={labelStyles}>{item.label}</div>
@@ -338,7 +334,7 @@ function SupportPage() {
                     target="_blank"
                     rel="noreferrer"
                   >
-                    Privacy Policy
+                    {t('privacyPolicy')}
                   </a>
                   <a
                     className="btn btn-ghost"
@@ -346,7 +342,7 @@ function SupportPage() {
                     target="_blank"
                     rel="noreferrer"
                   >
-                    Terms of Use
+                    {t('termsOfUse')}
                   </a>
                 </div>
               </div>
@@ -355,15 +351,14 @@ function SupportPage() {
 
           <div className="support-panel">
             <div>
-              <h2>Frequently Asked Questions</h2>
+              <h2>{t('faq')}</h2>
               <p className="page-subtitle">
-                Review these answers for the most common account, subscription, privacy, and
-                product usage questions.
+                {t('faqHint')}
               </p>
             </div>
 
             <div style={accordionStyles}>
-              {FAQ_ITEMS.map((item) => (
+              {faqItems.map((item) => (
                 <details key={item.question} style={faqItemStyles}>
                   <summary style={faqQuestionStyles}>{item.question}</summary>
                   <div style={faqAnswerStyles}>{item.answer}</div>
@@ -382,12 +377,12 @@ function SupportPage() {
           aria-labelledby="support-success-title"
         >
           <div style={modalStyles}>
-            <h2 id="support-success-title">Message sent successfully!</h2>
+            <h2 id="support-success-title">{t('sentSuccess')}</h2>
             <p style={{ ...helperStyles, color: 'var(--text)', marginBottom: '20px' }}>
-              Our team will get back to you within 24 hours.
+              {t('sentSuccessHint')}
             </p>
             <button className="btn btn-primary" type="button" onClick={handleCloseModal}>
-              Close
+              {t('close')}
             </button>
           </div>
         </div>

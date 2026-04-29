@@ -3,17 +3,23 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "engines": {
+    "node": ">=20.19.0 || >=22.12.0"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
+    "test:markdown": "node --test src/chat/utils/markdown.test.js src/chat/utils/documentPreview.test.js src/chat/utils/activity.test.js src/chat/utils/sources.test.js src/chat/utils/tableBlock.test.js src/chat/utils/liveMetadata.test.js src/chat/api/streamChatClient.test.js",
     "preview": "vite preview"
   },
   "dependencies": {
     "firebase": "^12.9.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "react-router-dom": "^7.9.1"
+    "react-markdown": "^10.1.0",
+    "react-router-dom": "^7.9.1",
+    "remark-gfm": "^4.0.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
