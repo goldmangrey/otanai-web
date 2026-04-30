@@ -137,13 +137,13 @@ function DocumentPreview({ content }) {
   )
 }
 
-function CodeBlock({ className, children }) {
+function CodeBlock({ className, children, artifactIntent = null }) {
   const [isCopied, setIsCopied] = useState(false)
   const normalizedLanguage = getCodeLanguage(className)
   const language = normalizedLanguage || 'Code'
   const content = String(children ?? '').replace(/\n$/, '')
 
-  if (isDocumentLike(content, normalizedLanguage)) {
+  if (isDocumentLike(content, normalizedLanguage, artifactIntent)) {
     return <DocumentPreview content={content} />
   }
 
@@ -176,9 +176,10 @@ function CodeBlock({ className, children }) {
   )
 }
 
-function ChatMessageContent({ content, metadata = null }) {
+function ChatMessageContent({ content, metadata = null, showResearchActivity = true }) {
   const sources = normalizeSources(metadata)
   const blocks = normalizeStructuredBlocks(metadata)
+  const artifactIntent = metadata?.artifactIntent || metadata?.artifact_intent || null
   const markdown = normalizeAssistantMarkdown(blocks.length ? stripTableArtifacts(content) : content)
 
   const renderStructuredBlock = (block, index) => {
@@ -191,12 +192,12 @@ function ChatMessageContent({ content, metadata = null }) {
     return null
   }
 
-  if (isStandaloneDocument(markdown)) {
+  if (isStandaloneDocument(markdown, artifactIntent)) {
     return (
       <div className="ai-markdown">
         <DocumentPreview content={markdown} />
         <SourcesButton sources={sources} />
-        <ResearchActivity metadata={metadata} />
+        {showResearchActivity ? <ResearchActivity metadata={metadata} /> : null}
       </div>
     )
   }
@@ -218,7 +219,7 @@ function ChatMessageContent({ content, metadata = null }) {
           },
           code: ({ inline, className, children }) => {
             if (inline) return <code>{children}</code>
-            return <CodeBlock className={className}>{children}</CodeBlock>
+            return <CodeBlock className={className} artifactIntent={artifactIntent}>{children}</CodeBlock>
           },
           h1: ({ children }) => <h1>{children}</h1>,
           h2: ({ children }) => (
@@ -264,7 +265,7 @@ function ChatMessageContent({ content, metadata = null }) {
         </div>
       ) : null}
       <SourcesButton sources={sources} />
-      <ResearchActivity metadata={metadata} />
+      {showResearchActivity ? <ResearchActivity metadata={metadata} /> : null}
     </div>
   )
 }

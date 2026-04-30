@@ -38,6 +38,15 @@ function ChatComposer({ isBusy, onSend, onStop }) {
         .filter(Boolean)
         .join(' ')}
     >
+      <button
+        aria-label={t('attachUnavailable')}
+        className="chat-composer__attach"
+        type="button"
+        disabled
+      >
+        ＋
+      </button>
+
       <div className="chat-composer__main">
         <textarea
           ref={textareaRef}
@@ -53,23 +62,11 @@ function ChatComposer({ isBusy, onSend, onStop }) {
         />
       </div>
 
-      <div className="chat-composer__footer">
-        <div className="chat-composer__tools">
-          <button
-            aria-label={t('attachUnavailable')}
-            className="chat-composer__attach"
-            type="button"
-            disabled
-          >
-            ＋
-          </button>
-          {isBusy ? (
-            <button className="chat-composer__chip chat-composer__chip--active" type="button" onClick={onStop}>
-              {t('stop')}
-            </button>
-          ) : null}
-        </div>
-
+      {isBusy ? (
+        <button className="chat-composer__chip chat-composer__chip--active" type="button" onClick={onStop}>
+          {t('stop')}
+        </button>
+      ) : (
         <button
           aria-label={t('sendMessage')}
           className="chat-composer__send"
@@ -79,7 +76,7 @@ function ChatComposer({ isBusy, onSend, onStop }) {
         >
           ↑
         </button>
-      </div>
+      )}
     </div>
   )
 }

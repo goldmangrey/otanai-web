@@ -3,10 +3,12 @@ import { test } from 'node:test'
 
 import {
   getCodeLanguage,
+  hasStrongDocumentStructure,
   isDocumentLanguage,
   isDocumentLike,
   isDocumentPlaceholder,
   isStandaloneDocument,
+  shouldRenderDocumentPreview,
   splitDocumentPlaceholders
 } from './documentPreview.js'
 
@@ -15,7 +17,7 @@ test('detects document fence language aliases', () => {
   assert.equal(isDocumentLanguage('document'), true)
   assert.equal(isDocumentLanguage('doc'), true)
   assert.equal(isDocumentLanguage('template'), true)
-  assert.equal(isDocumentLanguage('legal'), true)
+  assert.equal(isDocumentLanguage('legal'), false)
 })
 
 test('does not classify normal code languages as documents', () => {
@@ -25,7 +27,7 @@ test('does not classify normal code languages as documents', () => {
   assert.equal(isDocumentLanguage('json'), false)
 })
 
-test('detects standalone document-like answer conservatively', () => {
+test('does not detect standalone document-like answer without artifact intent', () => {
   const input = [
     'Кому: [название госоргана]',
     'От: [ФИО]',
@@ -37,7 +39,22 @@ test('detects standalone document-like answer conservatively', () => {
     'Дата: [дата]'
   ].join('\n')
 
-  assert.equal(isStandaloneDocument(input), true)
+  assert.equal(isStandaloneDocument(input), false)
+})
+
+test('detects standalone document-like answer only when artifact intent allows it', () => {
+  const input = [
+    'Кому: [название госоргана]',
+    'От: [ФИО]',
+    '',
+    'ЖАЛОБА',
+    '',
+    'Прошу рассмотреть обращение.',
+    '',
+    'Дата: [дата]'
+  ].join('\n')
+
+  assert.equal(isStandaloneDocument(input, { document_preview_allowed: true }), true)
 })
 
 test('does not convert normal chat answer mentioning application into document', () => {
@@ -45,6 +62,52 @@ test('does not convert normal chat answer mentioning application into document',
 
   assert.equal(isStandaloneDocument(input), false)
   assert.equal(isDocumentLike(input), false)
+})
+
+test('document code fence renders when artifact intent allows it', () => {
+  const input = 'ЗАЯВЛЕНИЕ\nОт: [ФИО]\nДата: [дата]'
+
+  assert.equal(isDocumentLike(input, 'document', { document_preview_allowed: true }), true)
+  assert.equal(shouldRenderDocumentPreview(input, 'document', { document_preview_allowed: true }), true)
+})
+
+test('document code fence does not render when artifact intent blocks it', () => {
+  const input = 'ЗАЯВЛЕНИЕ\nОт: [ФИО]\nДата: [дата]'
+
+  assert.equal(isDocumentLike(input, 'document', { document_preview_allowed: false }), false)
+  assert.equal(shouldRenderDocumentPreview(input, 'document', { document_preview_allowed: false }), false)
+})
+
+test('old explicit document block fallback requires strong document structure', () => {
+  const strong = 'ЗАЯВЛЕНИЕ\nКому: [орган]\nОт: [ФИО]\nИИН: [ИИН]\nДата: [дата]\nПодпись: [подпись]'
+  const weak = 'Объяснение правовых рисков договора.'
+
+  assert.equal(hasStrongDocumentStructure(strong), true)
+  assert.equal(shouldRenderDocumentPreview(strong, 'document'), true)
+  assert.equal(shouldRenderDocumentPreview(weak, 'document'), false)
+})
+
+test('legal language does not auto-render as document preview', () => {
+  const input = 'Объяснение правовых рисков договора.'
+
+  assert.equal(isDocumentLike(input, 'legal', { document_preview_allowed: true }), false)
+  assert.equal(shouldRenderDocumentPreview(input, 'legal', { document_preview_allowed: true }), false)
+})
+
+test('research answer mentioning договор is not standalone document', () => {
+  const input = [
+    '## Короткий ответ',
+    'Проверьте надежность застройщика перед подписанием договора.',
+    '',
+    '## Признаки риска',
+    '- Не подписывать договор без проверки БИН.',
+    '- Проверить судебные дела и разрешения.',
+    '',
+    '## Источники',
+    '- gov.kz'
+  ].join('\n')
+
+  assert.equal(isStandaloneDocument(input, { document_preview_allowed: false }), false)
 })
 
 test('splits and detects placeholders', () => {

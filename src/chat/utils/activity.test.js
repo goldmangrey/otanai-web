@@ -4,7 +4,11 @@ import { test } from 'node:test'
 import {
   createPendingActivity,
   getActivityDisplayLabel,
+  getLatestLiveActivity,
+  getLiveActivityDetail,
+  getLiveActivityText,
   normalizeActivity,
+  shouldShowCurrentResearchStatus,
   shouldShowResearchActivity
 } from './activity.js'
 
@@ -149,4 +153,105 @@ test('createPendingActivity does not create fake normal chat activity', () => {
   const output = createPendingActivity()
 
   assert.deepEqual(output, [])
+})
+
+test('current research status is hidden for loading message without activity', () => {
+  assert.equal(shouldShowCurrentResearchStatus(null, 'loading'), false)
+})
+
+test('current research status is hidden for normal generic chat activity', () => {
+  const metadata = {
+    mode: 'chat',
+    activity: [
+      { phase: 'routing', mode: 'chat', label: 'Определяю тип запроса', status: 'done' },
+      { phase: 'synthesis', mode: 'chat', label: 'Формирую ответ', status: 'done' }
+    ]
+  }
+
+  assert.equal(shouldShowCurrentResearchStatus(metadata, 'loading'), false)
+})
+
+test('current research status is shown for auto-rag retrieval activity while loading', () => {
+  const metadata = {
+    autoRag: { enabled: true },
+    activity: [
+      { phase: 'routing', mode: 'auto_rag', label: 'Определяю модуль', status: 'done' },
+      { phase: 'retrieval', mode: 'auto_rag', label: 'Ищу источники в базе OtanAI', status: 'running' }
+    ]
+  }
+
+  const activity = normalizeActivity(metadata)
+  const item = getLatestLiveActivity(activity, metadata)
+
+  assert.equal(shouldShowCurrentResearchStatus(metadata, 'loading'), true)
+  assert.equal(item.label, 'Ищу источники в базе OtanAI')
+  assert.equal(getLiveActivityText(item), 'Ищу источники в базе OtanAI…')
+})
+
+test('current research status is shown for deep research planning while loading', () => {
+  const metadata = {
+    activityMode: 'deep_research',
+    activity: [
+      { phase: 'planning', mode: 'deep_research', label: 'Формирую план исследования', status: 'running' }
+    ]
+  }
+
+  assert.equal(shouldShowCurrentResearchStatus(metadata, 'loading'), true)
+  assert.equal(getLatestLiveActivity(null, metadata).phase, 'planning')
+})
+
+test('current research status is hidden after done', () => {
+  const metadata = {
+    autoRag: { enabled: true },
+    activity: [
+      { phase: 'retrieval', mode: 'auto_rag', label: 'Ищу источники', status: 'done' }
+    ]
+  }
+
+  assert.equal(shouldShowCurrentResearchStatus(metadata, 'sent'), false)
+})
+
+test('latest live activity item is selected', () => {
+  const metadata = {
+    autoRag: { enabled: true },
+    activity: [
+      { phase: 'retrieval', mode: 'auto_rag', label: 'Ищу источники', status: 'done' },
+      { phase: 'verification', mode: 'auto_rag', label: 'Проверяю достаточность данных', status: 'done' }
+    ]
+  }
+
+  assert.equal(getLatestLiveActivity(null, metadata).label, 'Проверяю достаточность данных')
+})
+
+test('live activity detail is trimmed', () => {
+  const detail = getLiveActivityDetail({
+    label: 'Ищу источники',
+    detail: 'x'.repeat(300)
+  })
+
+  assert.ok(detail.length <= 153)
+})
+
+test('hidden reasoning markers are ignored for live status', () => {
+  const metadata = {
+    autoRag: { enabled: true },
+    activity: [
+      {
+        phase: 'retrieval',
+        mode: 'auto_rag',
+        label: 'raw_evidence payload',
+        status: 'running'
+      },
+      {
+        phase: 'verification',
+        mode: 'auto_rag',
+        label: 'Проверяю источники',
+        detail: 'hidden_reasoning private',
+        status: 'done'
+      }
+    ]
+  }
+
+  assert.equal(getLatestLiveActivity(null, metadata), null)
+  assert.equal(shouldShowCurrentResearchStatus(metadata, 'loading'), false)
 })

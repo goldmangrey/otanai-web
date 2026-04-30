@@ -21,6 +21,17 @@ const RESEARCH_PHASES = new Set([
   'follow_up'
 ])
 const GENERIC_PHASES = new Set(['routing', 'synthesis', 'done'])
+const LIVE_RESEARCH_PHASES = new Set([
+  'planning',
+  'retrieval',
+  'reading',
+  'source_compilation',
+  'verification',
+  'gap_analysis',
+  'conflict_check',
+  'follow_up',
+  'synthesis'
+])
 const DEEP_RESEARCH_MODES = new Set(['deep_research', 'deep-research'])
 const VERIFICATION_MODES = new Set(['auto_rag', 'auto-rag', 'grounded_rag', 'grounded-rag', 'grounded', 'rag'])
 const HIDDEN_KEYS = new Set([
@@ -42,6 +53,11 @@ function asArray(value) {
 function compactText(value, maxLength = 180) {
   const text = String(value || '').replace(/\s+/g, ' ').trim()
   return text.length > maxLength ? `${text.slice(0, maxLength).trim()}...` : text
+}
+
+function hasHiddenMarker(value) {
+  const text = String(value || '').toLowerCase()
+  return [...HIDDEN_KEYS].some((key) => text.includes(key.toLowerCase()))
 }
 
 function normalizeType(value) {
@@ -214,6 +230,50 @@ export function getActivityDisplayLabel(activity, metadata = null) {
   const modes = new Set([metadataMode(metadata), ...activityModes(items)].filter(Boolean))
   if ([...modes].some((mode) => DEEP_RESEARCH_MODES.has(mode))) return 'Ход исследования'
   return 'Ход проверки'
+}
+
+export function getLatestLiveActivity(activity, metadata = null) {
+  const items = Array.isArray(activity) ? activity : normalizeActivity(metadata)
+  if (!items.length) return null
+
+  const modes = new Set([metadataMode(metadata), ...activityModes(items)].filter(Boolean))
+  const hasResearchMode = [...modes].some(
+    (mode) => DEEP_RESEARCH_MODES.has(mode) || VERIFICATION_MODES.has(mode)
+  )
+  const hasResearchPhase = activityPhases(items).some((phase) => LIVE_RESEARCH_PHASES.has(phase))
+  if (!hasResearchMode && !hasResearchPhase) return null
+  if (modes.has('chat') && !hasResearchPhase) return null
+
+  const candidates = items.filter((item) => {
+    if (!item.label || hasHiddenMarker(item.label) || hasHiddenMarker(item.detail)) return false
+    if (!LIVE_RESEARCH_PHASES.has(item.phase || item.type)) return false
+    if ((item.phase || item.type) === 'synthesis' && !hasResearchMode) return false
+    if (item.mode === 'chat' && !hasResearchMode) return false
+    return ['running', 'pending', 'done', 'warning'].includes(item.status)
+  })
+
+  return [...candidates].reverse().find((item) => ['running', 'pending'].includes(item.status)) || candidates.at(-1) || null
+}
+
+export function getLiveActivityText(activityItem) {
+  if (!activityItem || typeof activityItem !== 'object') return ''
+  const label = compactText(activityItem.label, 140)
+  if (!label || hasHiddenMarker(label)) return ''
+  if (/^\{.*\}$/.test(label) || /^traceback/i.test(label) || /^stack trace/i.test(label)) return ''
+  return label.endsWith('...') || label.endsWith('…') ? label : `${label}…`
+}
+
+export function getLiveActivityDetail(activityItem) {
+  if (!activityItem || typeof activityItem !== 'object') return ''
+  const detail = compactText(activityItem.detail, 150)
+  if (!detail || hasHiddenMarker(detail)) return ''
+  if (/^\{.*\}$/.test(detail) || /^traceback/i.test(detail) || /^stack trace/i.test(detail)) return ''
+  return detail
+}
+
+export function shouldShowCurrentResearchStatus(metadata, messageStatus) {
+  if (messageStatus !== 'loading') return false
+  return Boolean(getLatestLiveActivity(normalizeActivity(metadata), metadata))
 }
 
 export function createPendingActivity() {

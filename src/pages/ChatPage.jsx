@@ -4,29 +4,16 @@ import AuthModal from '../components/chat/AuthModal.jsx'
 import ChatComposer from '../components/chat/ChatComposer.jsx'
 import ChatMessageContent from '../components/chat/ChatMessageContent.jsx'
 import ChatTopbar from '../components/chat/ChatTopbar.jsx'
-import EmptyState from '../components/chat/EmptyState.jsx'
+import CurrentResearchStatus from '../components/chat/CurrentResearchStatus.jsx'
 import { useAuth } from '../auth/useAuth.js'
 import { useLocalChats } from '../chat/hooks/useLocalChats.js'
 import { copyText } from '../chat/utils/clipboard.js'
 import { useCloudSync } from '../chat/persistence/useCloudSync.js'
 import { useChatRuntime } from '../chat/hooks/useChatRuntime.js'
-import { normalizeActivity, shouldShowResearchActivity } from '../chat/utils/activity.js'
+import { shouldShowCurrentResearchStatus } from '../chat/utils/activity.js'
 import { useI18n } from '../i18n/useI18n.js'
 
 const SCROLL_BOTTOM_THRESHOLD = 120
-
-const SUGGESTION_KEYS = ['suggestion1', 'suggestion2', 'suggestion3', 'suggestion4']
-
-function getLatestActivityLabel(metadata) {
-  const activity = normalizeActivity(metadata)
-  if (!shouldShowResearchActivity(activity, metadata)) return ''
-  const item =
-    [...activity].reverse().find((currentItem) =>
-      ['running', 'pending'].includes(currentItem.status)
-    ) || activity.at(-1)
-
-  return item?.label ? `${item.label}...` : ''
-}
 
 function ChatPageContent() {
   const { currentUser } = useAuth()
@@ -254,8 +241,6 @@ function ChatPageContent() {
     return t('localWorkspace')
   }, [currentUser, syncConfigured, syncError, syncMode, syncStatus, t])
 
-  const suggestions = useMemo(() => SUGGESTION_KEYS.map((key) => t(key)), [t])
-
   return (
     <section className="chat-shell">
       <AppSidebar
@@ -296,12 +281,7 @@ function ChatPageContent() {
                 </article>
               ))}
             </div>
-          ) : !activeChat?.messages.length ? (
-            <EmptyState
-              suggestions={suggestions}
-              onSelectSuggestion={handleSendMessage}
-            />
-          ) : (
+          ) : !activeChat?.messages.length ? null : (
             <div className="chat-transcript">
               {activeChat.messages.map((message) => {
                 const canRegenerate =
@@ -312,6 +292,8 @@ function ChatPageContent() {
                 const showActions = message.content || canRegenerate
                 const isLoading = message.status === 'loading'
                 const hasLiveStreamingContent = isLoading && (message.content || message.metadata)
+                const showCurrentResearchStatus =
+                  isLoading && shouldShowCurrentResearchStatus(message.metadata, message.status)
 
                 return (
                   <article
@@ -321,12 +303,23 @@ function ChatPageContent() {
                     <div className={`chat-message__body ${isLoading ? 'chat-message__body--loading' : ''}`}>
                       {isLoading ? (
                         <>
-                          <div className="chat-message__streaming" role="status" aria-live="polite">
-                            <span className="chat-message__streaming-dot" aria-hidden="true" />
-                            <span>{getLatestActivityLabel(message.metadata) || t('thinkingShort')}</span>
-                          </div>
+                          <CurrentResearchStatus
+                            metadata={message.metadata}
+                            status={message.status}
+                            isStreaming={isRequestActive}
+                          />
+                          {!showCurrentResearchStatus ? (
+                            <div className="chat-message__streaming" role="status" aria-live="polite">
+                              <span className="chat-message__streaming-dot" aria-hidden="true" />
+                              <span>{t('thinkingShort')}</span>
+                            </div>
+                          ) : null}
                           {hasLiveStreamingContent ? (
-                            <ChatMessageContent content={message.content} metadata={message.metadata} />
+                            <ChatMessageContent
+                              content={message.content}
+                              metadata={message.metadata}
+                              showResearchActivity={false}
+                            />
                           ) : null}
                         </>
                       ) : message.status === 'error' || message.status === 'cancelled' ? (

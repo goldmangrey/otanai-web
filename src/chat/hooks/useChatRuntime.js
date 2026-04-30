@@ -95,6 +95,7 @@ export function useChatRuntime({
               requestId: payload.requestId,
               chatId: payload.chatId,
               autoRag: payload.autoRag,
+              artifactIntent: payload.artifactIntent,
               mode: payload.mode
             })
           }))

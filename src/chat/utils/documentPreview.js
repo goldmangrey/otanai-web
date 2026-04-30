@@ -1,4 +1,4 @@
-const DOCUMENT_LANGUAGES = new Set(['document', 'doc', 'template', 'legal'])
+const DOCUMENT_LANGUAGES = new Set(['document', 'doc', 'template'])
 
 export function getCodeLanguage(className = '') {
   return String(className || '').replace('language-', '').trim().toLowerCase()
@@ -8,21 +8,44 @@ export function isDocumentLanguage(language = '') {
   return DOCUMENT_LANGUAGES.has(String(language || '').trim().toLowerCase())
 }
 
-export function isDocumentLike(content, language = '') {
+export function documentPreviewAllowed(artifactIntent = null) {
+  return artifactIntent?.document_preview_allowed === true || artifactIntent?.documentPreviewAllowed === true
+}
+
+export function hasStrongDocumentStructure(content) {
   const text = String(content || '')
-  if (isDocumentLanguage(language)) return true
+  const placeholderCount = (text.match(/\[[^\]\n]{2,48}\]/g) || []).length
+  const fieldCount = (text.match(/^(кому|от|иин|телефон|дата|подпись|адресат|заявитель|банк|договор):/gim) || []).length
+  const hasFormalTitle = /^(заявление|жалоба|шаблон|договор|обращение|претензия|уведомление|расписка|доверенность|исковое заявление)$/im.test(text)
+  const hasSignature = /^(дата|подпись):/im.test(text)
+
+  return hasFormalTitle && (placeholderCount >= 2 || fieldCount >= 3 || (fieldCount >= 2 && hasSignature))
+}
+
+export function shouldRenderDocumentPreview(content, language = '', artifactIntent = null) {
+  const normalizedLanguage = String(language || '').trim().toLowerCase()
+  if (!isDocumentLanguage(normalizedLanguage)) return false
+  if (documentPreviewAllowed(artifactIntent)) return true
+  if (artifactIntent) return false
+  return hasStrongDocumentStructure(content)
+}
+
+export function isDocumentLike(content, language = '', artifactIntent = null) {
+  const text = String(content || '')
+  if (isDocumentLanguage(language)) return shouldRenderDocumentPreview(text, language, artifactIntent)
 
   const hasDocumentTitle = /(заявление|жалоба|шаблон|договор|обращение)/i.test(text)
   const placeholderCount = (text.match(/\[[^\]\n]{2,48}\]/g) || []).length
   const fieldCount = (text.match(/^(кому|от|иин|телефон|дата|подпись|адресат|заявитель|банк|договор):/gim) || []).length
 
-  return hasDocumentTitle && (placeholderCount >= 2 || fieldCount >= 3)
+  return documentPreviewAllowed(artifactIntent) && hasDocumentTitle && (placeholderCount >= 2 || fieldCount >= 3)
 }
 
-export function isStandaloneDocument(markdown) {
+export function isStandaloneDocument(markdown, artifactIntent = null) {
   const text = String(markdown || '')
+  if (!documentPreviewAllowed(artifactIntent)) return false
   if (/```[\s\S]*?```/.test(text)) return false
-  return isDocumentLike(text) && text.split('\n').length >= 6
+  return hasStrongDocumentStructure(text) && isDocumentLike(text, '', artifactIntent) && text.split('\n').length >= 6
 }
 
 export function splitDocumentPlaceholders(line) {
