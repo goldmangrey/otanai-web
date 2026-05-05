@@ -1,8 +1,26 @@
 const KNOWN_EVENT_TYPES = new Set([
   'meta',
+  'message_start',
   'activity',
+  'tool_status',
   'source_found',
   'quality_update',
+  'block_start',
+  'markdown_delta',
+  'block_end',
+  'table_start',
+  'table_row',
+  'table_end',
+  'source_add',
+  'legal_citation_add',
+  'warning_add',
+  'risk_add',
+  'checklist_add',
+  'timeline_add',
+  'missing_info_add',
+  'suggested_actions_add',
+  'legal_disclaimer_add',
+  'document_preview',
   'chunk',
   'done',
   'error'
@@ -77,6 +95,7 @@ function dispatchEnvelope(envelope, callbacks) {
   if (!KNOWN_EVENT_TYPES.has(type)) return
 
   const payload = envelope.payload && typeof envelope.payload === 'object' ? envelope.payload : {}
+  callbacks.onEvent?.(payload, envelope)
 
   switch (type) {
     case 'meta':
@@ -93,6 +112,26 @@ function dispatchEnvelope(envelope, callbacks) {
       break
     case 'chunk':
       callbacks.onChunk?.(String(payload.delta || ''), payload, envelope)
+      break
+    case 'message_start':
+    case 'tool_status':
+    case 'block_start':
+    case 'markdown_delta':
+    case 'block_end':
+    case 'table_start':
+    case 'table_row':
+    case 'table_end':
+    case 'source_add':
+    case 'legal_citation_add':
+    case 'warning_add':
+    case 'risk_add':
+    case 'checklist_add':
+    case 'timeline_add':
+    case 'missing_info_add':
+    case 'suggested_actions_add':
+    case 'legal_disclaimer_add':
+    case 'document_preview':
+      callbacks.onV4Event?.(payload, envelope)
       break
     case 'done':
       callbacks.onDone?.(payload, envelope)
@@ -116,7 +155,9 @@ export async function sendStreamingChatRequest({
   onQualityUpdate,
   onChunk,
   onDone,
-  onError
+  onError,
+  onEvent,
+  onV4Event
 }) {
   const normalizedBaseUrl = normalizeBaseUrl(apiBaseUrl)
   const callbacks = {
@@ -126,7 +167,9 @@ export async function sendStreamingChatRequest({
     onQualityUpdate,
     onChunk,
     onDone,
-    onError
+    onError,
+    onEvent,
+    onV4Event
   }
 
   try {
@@ -138,7 +181,7 @@ export async function sendStreamingChatRequest({
       },
       body: JSON.stringify({
         ...payload,
-        protocolVersion: 3
+        protocolVersion: payload?.protocolVersion || 3
       }),
       signal
     })

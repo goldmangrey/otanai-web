@@ -1,4 +1,5 @@
 import { useAuth } from '../../auth/useAuth.js'
+import { APP_STORE_URL } from '../../chat/utils/appStore.js'
 import { useI18n } from '../../i18n/useI18n.js'
 
 function ChatTopbar({
@@ -47,7 +48,18 @@ function ChatTopbar({
         </div>
       </div>
 
-      <div className="chat-topbar__badge">{statusLabel}</div>
+      <div className="chat-topbar__right">
+        <a
+          className="chat-topbar__app-store"
+          href={APP_STORE_URL}
+          rel="noopener noreferrer"
+          target="_blank"
+        >
+          <span className="chat-topbar__app-store-full">Скачать в App Store</span>
+          <span className="chat-topbar__app-store-short">App Store</span>
+        </a>
+        <div className="chat-topbar__badge">{statusLabel}</div>
+      </div>
     </header>
   )
 }

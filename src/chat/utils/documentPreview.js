@@ -9,7 +9,17 @@ export function isDocumentLanguage(language = '') {
 }
 
 export function documentPreviewAllowed(artifactIntent = null) {
-  return artifactIntent?.document_preview_allowed === true || artifactIntent?.documentPreviewAllowed === true
+  const artifact = artifactIntent?.artifactIntent || artifactIntent?.artifact_intent || artifactIntent
+  if (artifact?.document_forbidden === true || artifact?.documentForbidden === true) return false
+  if (!(artifact?.document_preview_allowed === true || artifact?.documentPreviewAllowed === true)) return false
+
+  const answerPlan = artifactIntent?.answerPlan || artifactIntent?.answer_plan || null
+  const stylePolicy = artifactIntent?.responseStylePolicy || artifactIntent?.response_style_policy || null
+  if (!answerPlan && !stylePolicy && !artifactIntent?.artifactIntent && !artifactIntent?.artifact_intent) return true
+
+  const answerType = answerPlan?.answer_type || answerPlan?.answerType
+  const markdownPolicy = stylePolicy?.markdown_policy || stylePolicy?.markdownPolicy || {}
+  return answerType === 'document_template' && markdownPolicy?.use_document_block === true
 }
 
 export function hasStrongDocumentStructure(content) {
@@ -27,7 +37,7 @@ export function shouldRenderDocumentPreview(content, language = '', artifactInte
   if (!isDocumentLanguage(normalizedLanguage)) return false
   if (documentPreviewAllowed(artifactIntent)) return true
   if (artifactIntent) return false
-  return hasStrongDocumentStructure(content)
+  return false
 }
 
 export function isDocumentLike(content, language = '', artifactIntent = null) {

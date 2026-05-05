@@ -2,7 +2,7 @@ import { useState } from 'react'
 
 import SourcesDrawer from './SourcesDrawer.jsx'
 
-function SourcesButton({ sources }) {
+function SourcesButton({ sources, metadata = null }) {
   const [isOpen, setIsOpen] = useState(false)
 
   if (!sources.length) return null
@@ -17,7 +17,7 @@ function SourcesButton({ sources }) {
       >
         Источники · {sources.length}
       </button>
-      <SourcesDrawer sources={sources} isOpen={isOpen} onClose={() => setIsOpen(false)} />
+      <SourcesDrawer sources={sources} metadata={metadata} isOpen={isOpen} onClose={() => setIsOpen(false)} />
     </>
   )
 }

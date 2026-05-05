@@ -1,4 +1,5 @@
 // Path: src/App.jsx
+import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Layout from './components/Layout.jsx'
 import AuthProvider from './auth/AuthProvider.jsx'
@@ -19,6 +20,28 @@ import './styles/auth-modal.css'
 import './styles/pages.css'
 import './styles/forms.css'
 import './styles/support.css'
+import { isRichPlaygroundEnabled } from './config/richResponseFlags.js'
+
+const RichResponsePlayground = lazy(() => import('./chat/rich-response/playground/RichResponsePlayground.jsx'))
+
+function RichResponsePlaygroundRoute() {
+  const enabled = isRichPlaygroundEnabled()
+
+  if (!enabled) {
+    return (
+      <div className="content-page">
+        <h1>Playground is disabled</h1>
+        <p>Enable it with VITE_ENABLE_RICH_RESPONSE_PLAYGROUND=true or VITE_ENABLE_RICH_RESPONSE_DESIGN_MODE=true.</p>
+      </div>
+    )
+  }
+
+  return (
+    <Suspense fallback={<div className="content-page">Loading playground...</div>}>
+      <RichResponsePlayground />
+    </Suspense>
+  )
+}
 
 function App() {
   return (
@@ -33,6 +56,7 @@ function App() {
               <Route path="/privacy" element={<PrivacyPage />} />
               <Route path="/support" element={<SupportPage />} />
               <Route path="/admin/support" element={<AdminSupportPage />} />
+              <Route path="/dev/rich-response-playground" element={<RichResponsePlaygroundRoute />} />
             </Route>
           </Routes>
         </BrowserRouter>

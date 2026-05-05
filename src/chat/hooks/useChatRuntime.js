@@ -2,6 +2,13 @@ import { useRef, useState } from 'react'
 import { useAuth } from '../../auth/useAuth.js'
 import { sendChatRequest } from '../api/chatClient.js'
 import { sendStreamingChatRequest } from '../api/streamChatClient.js'
+import { applyV4StreamEvent, createV4StreamState } from '../../chat/rich-response/streaming/streamProtocolV4.js'
+import { createV4RevealQueue } from '../../chat/rich-response/streaming/streamProtocolV4RevealQueue.js'
+import {
+  isStreamProtocolV4Enabled,
+  isStreamSmoothRevealEnabled
+} from '../../config/richResponseFlags.js'
+import { logStreamV4Error } from '../../chat/rich-response/observability/richRendererLogger.js'
 import { mergeLiveActivity, mergeLiveMetadata, mergeLiveSources } from '../utils/liveMetadata.js'
 import { createRequestId } from '../utils/requestIds.js'
 
@@ -67,8 +74,47 @@ export function useChatRuntime({
     let finalContent = ''
     let finalMetadata = null
     const streamState = {
-      receivedData: false
+      receivedData: false,
+      v4: createV4StreamState()
     }
+    const protocolVersion = isStreamProtocolV4Enabled() ? 4 : 3
+    const smoothReveal = protocolVersion === 4 && isStreamSmoothRevealEnabled()
+
+    const applyV4Envelope = (envelope) => {
+      try {
+        streamState.v4 = applyV4StreamEvent(streamState.v4, envelope)
+      } catch (error) {
+        logStreamV4Error(error, {
+          source: envelope?.type || 'unknown',
+          protocolVersion: 4
+        })
+        throw error
+      }
+      finalContent = streamState.v4.content
+      patchAssistantMessage(chatId, assistantMessageId, () => ({
+        content: streamState.v4.content,
+        parts: streamState.v4.parts,
+        metadata: mergeLiveMetadata(streamState.v4.metadata, {
+          parts: streamState.v4.parts,
+          protocolVersion: 4
+        }),
+        status: 'loading',
+        error: '',
+        retryable: false
+      }))
+    }
+
+    const revealQueue = smoothReveal
+      ? createV4RevealQueue({
+          applyEvent: applyV4Envelope,
+          onError: (error, event) => {
+            logStreamV4Error(error, {
+              source: event?.type || 'unknown',
+              protocolVersion: 4
+            })
+          }
+        })
+      : null
 
     try {
       await sendStreamingChatRequest({
@@ -81,7 +127,7 @@ export function useChatRuntime({
           mode: 'chat',
           requestedMode: 'chat',
           requestedTier: 'free',
-          protocolVersion: 3,
+          protocolVersion,
           attachments: [],
           clientMessageId: requestId,
           config: {
@@ -122,6 +168,15 @@ export function useChatRuntime({
             }
           })
         },
+        onV4Event: (_payload, envelope) => {
+          if (protocolVersion !== 4) return
+          streamState.receivedData = true
+          if (revealQueue) {
+            revealQueue.enqueue(envelope)
+            return
+          }
+          applyV4Envelope(envelope)
+        },
         onQualityUpdate: (payload) => {
           streamState.receivedData = true
           patchAssistantMessage(chatId, assistantMessageId, (message) => ({
@@ -131,6 +186,7 @@ export function useChatRuntime({
           }))
         },
         onChunk: (delta) => {
+          if (protocolVersion === 4) return
           if (!delta) return
           streamState.receivedData = true
           finalContent += delta
@@ -143,6 +199,14 @@ export function useChatRuntime({
         },
         onDone: (payload) => {
           streamState.receivedData = true
+          if (protocolVersion === 4) {
+            const doneEnvelope = { type: 'done', payload }
+            if (revealQueue) {
+              revealQueue.enqueue(doneEnvelope)
+            } else {
+              applyV4Envelope(doneEnvelope)
+            }
+          }
           finalMetadata = payload.metadata || null
         },
         onError: (_error, _payload, envelope) => {
@@ -151,7 +215,11 @@ export function useChatRuntime({
           }
         }
       })
+      if (revealQueue) {
+        await revealQueue.drain()
+      }
     } catch (error) {
+      revealQueue?.clear()
       error.receivedStreamData = streamState.receivedData
       throw error
     }

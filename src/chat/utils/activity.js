@@ -3,6 +3,10 @@ const ALLOWED_TYPES = new Set([
   'retrieval',
   'reading',
   'verification',
+  'budgeting',
+  'planning',
+  'coverage',
+  'quality',
   'synthesis',
   'fallback',
   'done',
@@ -12,23 +16,29 @@ const ALLOWED_TYPES = new Set([
 const ALLOWED_STATUSES = new Set(['pending', 'running', 'done', 'skipped', 'warning', 'error'])
 const RESEARCH_PHASES = new Set([
   'planning',
+  'budgeting',
   'retrieval',
   'reading',
   'source_compilation',
+  'coverage',
   'verification',
   'gap_analysis',
   'conflict_check',
+  'quality',
   'follow_up'
 ])
 const GENERIC_PHASES = new Set(['routing', 'synthesis', 'done'])
 const LIVE_RESEARCH_PHASES = new Set([
   'planning',
+  'budgeting',
   'retrieval',
   'reading',
   'source_compilation',
+  'coverage',
   'verification',
   'gap_analysis',
   'conflict_check',
+  'quality',
   'follow_up',
   'synthesis'
 ])
@@ -43,7 +53,15 @@ const HIDDEN_KEYS = new Set([
   'privateReasoning',
   'raw_evidence',
   'rawEvidence',
-  'prompt'
+  'prompt',
+  'raw_prompt',
+  'rawPrompt',
+  'system_prompt',
+  'systemPrompt',
+  'traceback',
+  'stack_trace',
+  'api_key',
+  'secret'
 ])
 
 function asArray(value) {
@@ -176,7 +194,7 @@ export function normalizeActivity(input) {
     if (seen.has(key)) continue
     seen.add(key)
     normalized.push(item)
-    if (normalized.length >= 10) break
+    if (normalized.length >= 50) break
   }
 
   return normalized
@@ -214,8 +232,8 @@ export function shouldShowResearchActivity(activity, metadata = null) {
 
   const hasDeepMode = [...modes].some((mode) => DEEP_RESEARCH_MODES.has(mode))
   const hasVerificationMode = [...modes].some((mode) => VERIFICATION_MODES.has(mode))
-  const hasVerificationPhase = ['retrieval', 'source_compilation', 'verification'].some((phase) => phases.has(phase))
-  const hasDeepPhase = ['planning', 'retrieval', 'gap_analysis', 'conflict_check', 'follow_up', 'synthesis'].some((phase) =>
+  const hasVerificationPhase = ['retrieval', 'source_compilation', 'coverage', 'verification', 'quality'].some((phase) => phases.has(phase))
+  const hasDeepPhase = ['planning', 'budgeting', 'retrieval', 'coverage', 'gap_analysis', 'conflict_check', 'quality', 'follow_up', 'synthesis'].some((phase) =>
     phases.has(phase)
   )
 

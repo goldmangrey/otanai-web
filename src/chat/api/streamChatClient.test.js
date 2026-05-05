@@ -82,6 +82,51 @@ test('sendStreamingChatRequest dispatches known event callbacks and ignores unkn
   assert.deepEqual(calls, ['meta', 'activity', 'source_found', 'quality_update', 'chunk:hello ', 'done'])
 })
 
+test('sendStreamingChatRequest dispatches v4 events and preserves requested protocol version', async () => {
+  const calls = []
+  let requestBody = null
+  const originalFetch = globalThis.fetch
+  globalThis.fetch = async (_url, init) => {
+    requestBody = JSON.parse(init.body)
+    return {
+      ok: true,
+      body: streamFromChunks([
+        envelope('message_start', { protocolVersion: 4 }),
+        envelope('markdown_delta', { blockId: 'm1', text: 'hello' }),
+        envelope('table_start', { blockId: 't1', columns: ['A'] }),
+        envelope('table_row', { blockId: 't1', row: ['B'] }),
+        envelope('source_add', { source: { title: 'Source' } }),
+        envelope('warning_add', { part: { text: 'Важно' } }),
+        envelope('document_preview', { document: { title: 'Doc' } }),
+        envelope('done', { assistantText: 'hello', metadata: { parts: [] }, protocolVersion: 4 })
+      ])
+    }
+  }
+
+  try {
+    await sendStreamingChatRequest({
+      apiBaseUrl: 'http://backend',
+      payload: { message: 'hi', protocolVersion: 4 },
+      onV4Event: (_payload, envelope) => calls.push(envelope.type),
+      onDone: () => calls.push('done')
+    })
+  } finally {
+    globalThis.fetch = originalFetch
+  }
+
+  assert.equal(requestBody.protocolVersion, 4)
+  assert.deepEqual(calls, [
+    'message_start',
+    'markdown_delta',
+    'table_start',
+    'table_row',
+    'source_add',
+    'warning_add',
+    'document_preview',
+    'done'
+  ])
+})
+
 test('malformed JSON is ignored safely', () => {
   const events = []
   parseSseBuffer('data: {"bad"\n\n' + envelope('done', {}), (event) => events.push(event))

@@ -121,3 +121,153 @@
   color: var(--shell-text);
   padding: 0 14px;
 }
+
+.auth-benefit-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 39;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(3, 7, 18, 0.7);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.auth-benefit-modal__card {
+  position: relative;
+  width: min(100%, 480px);
+  padding: 28px;
+  border: 1px solid var(--shell-border);
+  border-radius: 28px;
+  background:
+    linear-gradient(180deg, rgba(19, 25, 40, 0.94), rgba(8, 11, 18, 0.98)),
+    rgba(8, 11, 18, 0.96);
+  box-shadow: var(--shell-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.auth-benefit-modal__close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--shell-border);
+  border-radius: 999px;
+  background: var(--shell-pill);
+  color: var(--shell-text);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.auth-benefit-modal__close:hover {
+  background: var(--shell-pill-hover);
+}
+
+.auth-benefit-modal__card h2 {
+  max-width: 390px;
+  margin: 0 44px 12px 0;
+  color: var(--shell-text);
+  font-size: 26px;
+  line-height: 1.12;
+}
+
+.auth-benefit-modal__card p {
+  margin: 0;
+  color: var(--shell-muted-strong);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.auth-benefit-modal__list {
+  display: grid;
+  gap: 8px;
+  margin: 18px 0 0;
+  padding: 0;
+  list-style: none;
+  color: rgba(226, 232, 240, 0.86);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.auth-benefit-modal__list li {
+  position: relative;
+  padding-left: 18px;
+}
+
+.auth-benefit-modal__list li::before {
+  content: '';
+  position: absolute;
+  top: 0.65em;
+  left: 2px;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: #93c5fd;
+}
+
+.auth-benefit-modal__actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.auth-benefit-modal__primary,
+.auth-benefit-modal__secondary {
+  min-height: 46px;
+  border-radius: 16px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.auth-benefit-modal__primary {
+  flex: 1 1 auto;
+  border: 1px solid rgba(191, 219, 254, 0.28);
+  background: linear-gradient(180deg, rgba(59, 130, 246, 0.96), rgba(37, 99, 235, 0.92));
+  color: #ffffff;
+  box-shadow: 0 14px 32px rgba(37, 99, 235, 0.24);
+}
+
+.auth-benefit-modal__primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 18px 38px rgba(37, 99, 235, 0.3);
+}
+
+.auth-benefit-modal__secondary {
+  flex: 0 0 auto;
+  padding: 0 18px;
+  border: 1px solid var(--shell-border);
+  background: var(--shell-pill);
+  color: var(--shell-text);
+}
+
+.auth-benefit-modal__secondary:hover {
+  background: var(--shell-pill-hover);
+}
+
+@media (max-width: 640px) {
+  .auth-benefit-modal {
+    padding: 16px;
+    align-items: end;
+  }
+
+  .auth-benefit-modal__card {
+    padding: 24px 20px 20px;
+    border-radius: 24px;
+  }
+
+  .auth-benefit-modal__card h2 {
+    margin-right: 42px;
+    font-size: 22px;
+  }
+
+  .auth-benefit-modal__actions {
+    display: grid;
+  }
+
+  .auth-benefit-modal__secondary {
+    width: 100%;
+  }
+}

@@ -41,6 +41,14 @@ function TableBlock({ block = null, content = '' }) {
           </tbody>
         </table>
       </div>
+      {table.source_ids.length ? (
+        <div className="structured-table__sources" aria-label="Table sources">
+          <span>Источники таблицы</span>
+          {table.source_ids.map((sourceId) => (
+            <code key={sourceId}>{sourceId}</code>
+          ))}
+        </div>
+      ) : null}
       {table.caption ? <p className="structured-table__caption">{table.caption}</p> : null}
     </section>
   )

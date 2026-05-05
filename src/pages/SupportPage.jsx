@@ -332,7 +332,7 @@ function SupportPage() {
                     className="btn btn-ghost"
                     href={PRIVACY_POLICY_URL}
                     target="_blank"
-                    rel="noreferrer"
+                    rel="noopener noreferrer"
                   >
                     {t('privacyPolicy')}
                   </a>
@@ -340,7 +340,7 @@ function SupportPage() {
                     className="btn btn-ghost"
                     href={TERMS_OF_USE_URL}
                     target="_blank"
-                    rel="noreferrer"
+                    rel="noopener noreferrer"
                   >
                     {t('termsOfUse')}
                   </a>

@@ -7,6 +7,8 @@ import {
   normalizeStructuredBlocks,
   normalizeTableBlock,
   parseTableBlock,
+  recoverMalformedTableBlocks,
+  stripRecoveredTableArtifacts,
   stripTableArtifacts
 } from './tableBlock.js'
 
@@ -101,6 +103,25 @@ test('normalizes metadata table block', () => {
   })
 })
 
+test('moves source-only table column to source ids', () => {
+  const block = normalizeTableBlock({
+    type: 'table',
+    title: 'Таблица рисков',
+    columns: ['Риск', 'Что это значит', 'Источник'],
+    rows: [
+      ['Налоговая задолженность', 'Блокирует закрытие ИП', '[source: business_tax_ip_closing_041]'],
+      ['Отчётность', 'Нужно сдать форму 910.00', '[source: business_tax_form_910_017]']
+    ]
+  })
+
+  assert.deepEqual(block.columns, ['Риск', 'Что это значит'])
+  assert.deepEqual(block.rows, [
+    ['Налоговая задолженность', 'Блокирует закрытие ИП'],
+    ['Отчётность', 'Нужно сдать форму 910.00']
+  ])
+  assert.deepEqual(block.source_ids, ['business_tax_ip_closing_041', 'business_tax_form_910_017'])
+})
+
 test('normalizes structured blocks from metadata', () => {
   const blocks = normalizeStructuredBlocks({
     blocks: [
@@ -145,4 +166,107 @@ test('strips table artifacts when structured block exists', () => {
 
   assert.equal(stripTableArtifacts(text), 'Вот таблица:\nПосле таблицы.')
   assert.equal(stripTableArtifacts('Intro table columns: A | B row: one | two'), 'Intro')
+})
+
+test('metadata table block does not duplicate markdown table text', () => {
+  const metadata = {
+    blocks: [
+      { type: 'table', columns: ['Риск', 'Что это значит'], rows: [['Долг', 'Блокирует карту']] }
+    ]
+  }
+  const text = [
+    'Вот таблица:',
+    '| Риск | Что это значит |',
+    '| --- | --- |',
+    '| Долг | Блокирует карту |',
+    'После таблицы.'
+  ].join('\n')
+
+  assert.equal(normalizeStructuredBlocks(metadata).length, 1)
+  assert.equal(stripTableArtifacts(text), 'Вот таблица:\nПосле таблицы.')
+})
+
+test('recovers malformed one-line risk pipe table', () => {
+  const text = [
+    '## Таблица рисков Колонка 1 | Колонка 2 | Колонка 3 --- | --- | ---',
+    'Неполная проверка застройщика |',
+    'В базе нет подтверждённых сведений о БИН, земле, судах и разрешениях |',
+    'Вывод о надёжности ЖК будет неполным [source: business_tax_portals_034] [source: business_tax_ip_closing_041]',
+    'Налоговая задолженность |',
+    'Закрытие ИП не допускается при наличии задолженности |',
+    'Риск отказа в ликвидации [source: business_tax_ip_closing_041]'
+  ].join(' ')
+
+  const blocks = recoverMalformedTableBlocks(text)
+
+  assert.equal(blocks.length, 1)
+  assert.equal(blocks[0].title, 'Таблица рисков')
+  assert.deepEqual(blocks[0].columns, ['Риск', 'Что это значит', 'Комментарий'])
+  assert.deepEqual(blocks[0].rows, [
+    [
+      'Неполная проверка застройщика',
+      'В базе нет подтверждённых сведений о БИН, земле, судах и разрешениях',
+      'Вывод о надёжности ЖК будет неполным'
+    ],
+    [
+      'Налоговая задолженность',
+      'Закрытие ИП не допускается при наличии задолженности',
+      'Риск отказа в ликвидации'
+    ]
+  ])
+  assert.deepEqual(blocks[0].source_ids, ['business_tax_portals_034', 'business_tax_ip_closing_041'])
+  assert.equal(stripRecoveredTableArtifacts(text), '')
+})
+
+test('keeps follow-up text outside recovered malformed table', () => {
+  const text = [
+    '## Таблица рисков Колонка 1 | Колонка 2 | Колонка 3',
+    'Риск | Что это значит | Источник',
+    'Налоговая задолженность | Блокирует закрытие ИП | [source: business_tax_ip_closing_041]',
+    'Отчётность | Нужно сдать форму 910.00 | [source: business_tax_form_910_017]',
+    '> Риск-заметка: перепроверьте актуальные требования на eGov.'
+  ].join(' ')
+
+  const blocks = recoverMalformedTableBlocks(text)
+
+  assert.deepEqual(blocks[0].columns, ['Риск', 'Что это значит'])
+  assert.deepEqual(blocks[0].rows, [
+    ['Налоговая задолженность', 'Блокирует закрытие ИП'],
+    ['Отчётность', 'Нужно сдать форму 910.00']
+  ])
+  assert.deepEqual(blocks[0].source_ids, ['business_tax_ip_closing_041', 'business_tax_form_910_017'])
+  assert.equal(stripRecoveredTableArtifacts(text), '> Риск-заметка: перепроверьте актуальные требования на eGov.')
+})
+
+test('section heading is not parsed as recovered table row', () => {
+  const text = [
+    '## Таблица рисков Колонка 1 | Колонка 2 | Колонка 3',
+    'Риск | Что это значит | Источник',
+    'Налоговая задолженность | Блокирует закрытие ИП | [source: business_tax_ip_closing_041]',
+    'Отчётность | Нужно сдать форму 910.00 | [source: business_tax_form_910_017]',
+    '## Ограничения',
+    'Проверьте актуальные требования.'
+  ].join(' ')
+
+  const blocks = recoverMalformedTableBlocks(text)
+
+  assert.deepEqual(blocks[0].columns, ['Риск', 'Что это значит'])
+  assert.equal(stripRecoveredTableArtifacts(text), '## Ограничения Проверьте актуальные требования.')
+  assert.equal(JSON.stringify(blocks[0].rows).includes('Ограничения'), false)
+})
+
+test('normal paragraph after recovered table remains outside table', () => {
+  const text = [
+    '## Таблица рисков Колонка 1 | Колонка 2 | Колонка 3',
+    'Риск | Что это значит | Источник',
+    'Налоговая задолженность | Блокирует закрытие ИП | [source: business_tax_ip_closing_041]',
+    'Отчётность | Нужно сдать форму 910.00 | [source: business_tax_form_910_017]',
+    'Короткий вывод: сначала проверьте долги и отчётность.'
+  ].join(' ')
+
+  const blocks = recoverMalformedTableBlocks(text)
+
+  assert.deepEqual(blocks[0].columns, ['Риск', 'Что это значит'])
+  assert.equal(stripRecoveredTableArtifacts(text), 'Короткий вывод: сначала проверьте долги и отчётность.')
+  assert.equal(JSON.stringify(blocks[0].rows).includes('Короткий вывод'), false)
 })

@@ -24,6 +24,23 @@ const OFFICIAL_SOURCE_TYPES = new Set([
 
 const TRUST_LEVELS = new Set(['high', 'medium', 'low'])
 const SNIPPET_MAX_CHARS = 300
+const SOURCE_GROUPS = [
+  { id: 'official', label: 'Официальные источники' },
+  { id: 'registries', label: 'Банки и реестры' },
+  { id: 'additional', label: 'Дополнительные источники' }
+]
+const HIDDEN_MARKERS = [
+  'chain_of_thought',
+  'hidden_reasoning',
+  'private_reasoning',
+  'raw_evidence',
+  'system_prompt',
+  'raw_prompt',
+  'traceback',
+  'stack trace',
+  'api_key',
+  'secret'
+]
 
 function readString(...values) {
   for (const value of values) {
@@ -36,6 +53,8 @@ function readString(...values) {
 
 function trimSnippet(value) {
   const text = readString(value).replace(/\s+/g, ' ')
+  const lowered = text.toLowerCase().replaceAll('-', '_')
+  if (HIDDEN_MARKERS.some((marker) => lowered.includes(marker))) return ''
   if (text.length <= SNIPPET_MAX_CHARS) return text
   return `${text.slice(0, SNIPPET_MAX_CHARS).trim()}...`
 }
@@ -107,6 +126,9 @@ function normalizeSource(item, index) {
     snippet,
     trust_level: trustLevel,
     source_type: sourceType,
+    source_tier: Number.isFinite(Number(item.source_tier || item.sourceTier))
+      ? Number(item.source_tier || item.sourceTier)
+      : null,
     version_date: readString(item.version_date, item.versionDate),
     is_official: isOfficial
   }
@@ -128,4 +150,69 @@ export function normalizeSources(input) {
   })
 
   return normalized
+}
+
+export function getSourceSelectionSummary(input) {
+  const metadata = input?.metadata && typeof input.metadata === 'object' ? input.metadata : input
+  const selection = metadata?.sourceSelection
+  if (!selection || typeof selection !== 'object' || Array.isArray(selection)) return null
+
+  const summary = {
+    retrieved: safeCount(selection.retrieved_count),
+    reviewed: safeCount(selection.reviewed_count),
+    used: safeCount(selection.used_count),
+    cited: safeCount(selection.cited_count),
+    official: safeCount(selection.official_count)
+  }
+
+  return Object.values(summary).some((value) => value > 0) ? summary : null
+}
+
+export function groupSourcesForDrawer(sources = [], metadata = null) {
+  const normalized = Array.isArray(sources) ? sources : normalizeSources(sources)
+  if (!normalized.length) return []
+
+  const groups = SOURCE_GROUPS.map((group) => ({ ...group, sources: [] }))
+  for (const source of normalized) {
+    if (isOfficialSource(source)) {
+      groups[0].sources.push(source)
+    } else if (isRegistryOrBankSource(source)) {
+      groups[1].sources.push(source)
+    } else {
+      groups[2].sources.push(source)
+    }
+  }
+
+  const visibleGroups = groups
+    .filter((group) => group.sources.length)
+    .map((group) => ({ ...group, count: group.sources.length }))
+
+  if (visibleGroups.length <= 1 && !getSourceSelectionSummary(metadata)) {
+    return [{ id: 'all', label: 'Источники', count: normalized.length, sources: normalized }]
+  }
+
+  return visibleGroups
+}
+
+function safeCount(value) {
+  const number = Number(value)
+  return Number.isFinite(number) && number > 0 ? number : 0
+}
+
+function isOfficialSource(source) {
+  return Boolean(source?.is_official) || Number(source?.source_tier) === 1 || isOfficialKzSource(source?.domain, source?.source_type)
+}
+
+function isRegistryOrBankSource(source) {
+  const sourceType = readString(source?.source_type).toLowerCase()
+  const domain = readString(source?.domain).toLowerCase()
+  return (
+    sourceType.includes('bank') ||
+    sourceType.includes('registry') ||
+    sourceType.includes('regulator') ||
+    domain.includes('bank') ||
+    domain.includes('kgd') ||
+    domain.includes('finreg') ||
+    domain.includes('nationalbank')
+  )
 }

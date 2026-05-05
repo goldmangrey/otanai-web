@@ -1,42 +1,47 @@
-function SourceBadge({ children, variant = 'default' }) {
-  if (!children) return null
-  return <span className={`sources-drawer__badge sources-drawer__badge--${variant}`}>{children}</span>
-}
+import { useEffect } from 'react'
 
-function SourceCard({ source, index }) {
+import { getSourceSelectionSummary } from '../../chat/utils/sources.js'
+import SourcePanel from '../../chat/rich-response/parts/sources/SourcePanel.jsx'
+import { normalizeSources } from '../../chat/rich-response/parts/sources/sourceUtils.js'
+
+function SourceSummary({ summary }) {
+  if (!summary) return null
+  const items = [
+    ['Найдено', summary.retrieved],
+    ['Проверено', summary.reviewed],
+    ['Использовано', summary.used],
+    ['Показано', summary.cited],
+    ['Официальных', summary.official]
+  ].filter(([, value]) => value)
+
+  if (!items.length) return null
+
   return (
-    <article className="sources-drawer__card">
-      <div className="sources-drawer__card-header">
-        <span className="sources-drawer__index">{index + 1}</span>
-        <div>
-          <h3>{source.title}</h3>
-          {source.domain ? <p>{source.domain}</p> : null}
+    <dl className="sources-drawer__summary" aria-label="Source selection summary">
+      {items.map(([label, value]) => (
+        <div key={label} className="sources-drawer__summary-item">
+          <dt>{label}</dt>
+          <dd>{value}</dd>
         </div>
-      </div>
-
-      <div className="sources-drawer__badges" aria-label="Source metadata">
-        {source.is_official ? <SourceBadge variant="official">official</SourceBadge> : null}
-        <SourceBadge variant={source.trust_level}>{source.trust_level}</SourceBadge>
-        {source.source_type && source.source_type !== 'unknown' ? (
-          <SourceBadge>{source.source_type}</SourceBadge>
-        ) : null}
-        <SourceBadge>{source.version_date}</SourceBadge>
-      </div>
-
-      {source.source_id ? <p className="sources-drawer__source-id">{source.source_id}</p> : null}
-      {source.snippet ? <p className="sources-drawer__snippet">{source.snippet}</p> : null}
-
-      {source.url ? (
-        <a className="sources-drawer__link" href={source.url} rel="noreferrer noopener" target="_blank">
-          Открыть источник
-        </a>
-      ) : null}
-    </article>
+      ))}
+    </dl>
   )
 }
 
-function SourcesDrawer({ sources, isOpen, onClose }) {
+function SourcesDrawer({ sources, metadata = null, isOpen, onClose }) {
+  useEffect(() => {
+    if (!isOpen) return undefined
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') onClose?.()
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [isOpen, onClose])
+
   if (!isOpen) return null
+
+  const summary = getSourceSelectionSummary(metadata)
+  const normalizedSources = normalizeSources(sources)
 
   return (
     <div className="sources-drawer-backdrop" role="presentation" onMouseDown={onClose}>
@@ -50,7 +55,7 @@ function SourcesDrawer({ sources, isOpen, onClose }) {
         <header className="sources-drawer__header">
           <div>
             <h2 id="sources-drawer-title">Источники ответа</h2>
-            <p>{sources.length} источников</p>
+            <p>{summary?.cited || normalizedSources.length} источников показано</p>
           </div>
           <button type="button" className="sources-drawer__close" aria-label="Закрыть источники" onClick={onClose}>
             ×
@@ -58,9 +63,8 @@ function SourcesDrawer({ sources, isOpen, onClose }) {
         </header>
 
         <div className="sources-drawer__body">
-          {sources.map((source, index) => (
-            <SourceCard key={`${source.id}-${index}`} source={source} index={index} />
-          ))}
+          <SourceSummary summary={summary} />
+          <SourcePanel compact sources={normalizedSources} title="Источники ответа" />
         </div>
       </aside>
     </div>

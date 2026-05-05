@@ -1,25 +1,34 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import AppSidebar from '../components/chat/AppSidebar.jsx'
+import AuthBenefitModal from '../components/chat/AuthBenefitModal.jsx'
 import AuthModal from '../components/chat/AuthModal.jsx'
+import AnswerFeedbackControls from '../components/chat/AnswerFeedbackControls.jsx'
 import ChatComposer from '../components/chat/ChatComposer.jsx'
 import ChatMessageContent from '../components/chat/ChatMessageContent.jsx'
 import ChatTopbar from '../components/chat/ChatTopbar.jsx'
-import CurrentResearchStatus from '../components/chat/CurrentResearchStatus.jsx'
+import StreamingActivity from '../chat/rich-response/streaming/StreamingActivity.jsx'
 import { useAuth } from '../auth/useAuth.js'
 import { useLocalChats } from '../chat/hooks/useLocalChats.js'
 import { copyText } from '../chat/utils/clipboard.js'
 import { useCloudSync } from '../chat/persistence/useCloudSync.js'
 import { useChatRuntime } from '../chat/hooks/useChatRuntime.js'
-import { shouldShowCurrentResearchStatus } from '../chat/utils/activity.js'
+import {
+  dismissAuthBenefitModal,
+  hasDismissedAuthBenefitModal,
+  shouldShowAuthBenefitModal
+} from '../chat/utils/authBenefitModal.js'
 import { useI18n } from '../i18n/useI18n.js'
 
 const SCROLL_BOTTOM_THRESHOLD = 120
 
 function ChatPageContent() {
-  const { currentUser } = useAuth()
+  const { authLoading, currentUser, isAuthenticated } = useAuth()
   const { t } = useI18n()
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false)
+  const [isAuthBenefitModalDismissed, setIsAuthBenefitModalDismissed] = useState(() =>
+    hasDismissedAuthBenefitModal()
+  )
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
   const [showScrollToLatest, setShowScrollToLatest] = useState(false)
   const [copiedMessageId, setCopiedMessageId] = useState('')
@@ -71,6 +80,12 @@ function ChatPageContent() {
     failAssistantMessage,
     patchAssistantMessage,
     resolveAssistantMessage
+  })
+
+  const isAuthBenefitModalOpen = shouldShowAuthBenefitModal({
+    authLoading,
+    isAuthenticated,
+    dismissed: isAuthBenefitModalDismissed
   })
 
   const activeMessagesCount = activeChat?.messages.length ?? 0
@@ -141,7 +156,7 @@ function ChatPageContent() {
   }, [activeChat, activeMessagesCount, isResponding])
 
   useEffect(() => {
-    const shouldLock = isMobileSidebarOpen || isAuthModalOpen
+    const shouldLock = isMobileSidebarOpen || isAuthModalOpen || isAuthBenefitModalOpen
     const previousOverflow = document.body.style.overflow
 
     if (shouldLock) {
@@ -151,7 +166,7 @@ function ChatPageContent() {
     return () => {
       document.body.style.overflow = previousOverflow
     }
-  }, [isAuthModalOpen, isMobileSidebarOpen])
+  }, [isAuthBenefitModalOpen, isAuthModalOpen, isMobileSidebarOpen])
 
   useEffect(() => {
     if (!copiedMessageId) return undefined
@@ -231,6 +246,16 @@ function ChatPageContent() {
     regenerateLatestResponse(activeChatId)
   }
 
+  const closeAuthBenefitModal = () => {
+    dismissAuthBenefitModal()
+    setIsAuthBenefitModalDismissed(true)
+  }
+
+  const handleAuthBenefitSignIn = () => {
+    closeAuthBenefitModal()
+    setIsAuthModalOpen(true)
+  }
+
   const chatTitle = useMemo(() => activeChat?.title || 'OtanAI', [activeChat?.title])
   const syncLabel = useMemo(() => {
     if (!currentUser) return t('localWorkspace')
@@ -292,8 +317,6 @@ function ChatPageContent() {
                 const showActions = message.content || canRegenerate
                 const isLoading = message.status === 'loading'
                 const hasLiveStreamingContent = isLoading && (message.content || message.metadata)
-                const showCurrentResearchStatus =
-                  isLoading && shouldShowCurrentResearchStatus(message.metadata, message.status)
 
                 return (
                   <article
@@ -303,19 +326,14 @@ function ChatPageContent() {
                     <div className={`chat-message__body ${isLoading ? 'chat-message__body--loading' : ''}`}>
                       {isLoading ? (
                         <>
-                          <CurrentResearchStatus
+                          <StreamingActivity
+                            message={message}
                             metadata={message.metadata}
-                            status={message.status}
                             isStreaming={isRequestActive}
                           />
-                          {!showCurrentResearchStatus ? (
-                            <div className="chat-message__streaming" role="status" aria-live="polite">
-                              <span className="chat-message__streaming-dot" aria-hidden="true" />
-                              <span>{t('thinkingShort')}</span>
-                            </div>
-                          ) : null}
                           {hasLiveStreamingContent ? (
                             <ChatMessageContent
+                              message={message}
                               content={message.content}
                               metadata={message.metadata}
                               showResearchActivity={false}
@@ -349,12 +367,25 @@ function ChatPageContent() {
                           </div>
                         </div>
                       ) : (
-                        <ChatMessageContent content={message.content} metadata={message.metadata} />
+                        <ChatMessageContent
+                          message={message}
+                          content={message.content}
+                          metadata={message.metadata}
+                        />
                       )}
                     </div>
 
                     {!isLoading && showActions ? (
                       <div className="chat-message__actions" aria-label="Message actions">
+                        {message.role === 'assistant' && message.status === 'sent' ? (
+                          <AnswerFeedbackControls
+                            chatId={activeChatId}
+                            currentUser={currentUser}
+                            message={message}
+                            onRequireSignIn={() => setIsAuthModalOpen(true)}
+                          />
+                        ) : null}
+
                         {message.content ? (
                           <button
                             aria-label={t('copyAnswer')}
@@ -412,6 +443,11 @@ function ChatPageContent() {
         </div>
       </div>
 
+      <AuthBenefitModal
+        isOpen={isAuthBenefitModalOpen}
+        onClose={closeAuthBenefitModal}
+        onSignIn={handleAuthBenefitSignIn}
+      />
       <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
     </section>
   )

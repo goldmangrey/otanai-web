@@ -365,7 +365,7 @@ function PrivacyPage() {
           className="btn btn-ghost"
           href="https://otanai.kz/privacy"
           target="_blank"
-          rel="noreferrer"
+          rel="noopener noreferrer"
         >
           {t('openOnWebsite')}
         </a>

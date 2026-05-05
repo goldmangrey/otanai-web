@@ -12,19 +12,28 @@ import {
 } from '../../chat/utils/documentPreview.js'
 import { normalizeAssistantMarkdown } from '../../chat/utils/markdown.js'
 import { normalizeSources } from '../../chat/utils/sources.js'
-import { isTableBlockLanguage, normalizeStructuredBlocks, stripTableArtifacts } from '../../chat/utils/tableBlock.js'
+import {
+  isTableBlockLanguage,
+  normalizeStructuredBlocks,
+  recoverMalformedTableBlocks,
+  stripRecoveredTableArtifacts,
+  stripTableArtifacts
+} from '../../chat/utils/tableBlock.js'
 import CalloutBlock from './CalloutBlock.jsx'
 import ResearchActivity from './ResearchActivity.jsx'
 import SourcesButton from './SourcesButton.jsx'
 import TableBlock from './TableBlock.jsx'
+import OtanMessage from '../../chat/rich-response/OtanMessage.jsx'
+import RichRendererErrorBoundary from '../../chat/rich-response/RichRendererErrorBoundary.jsx'
+import { metadataToSourcePanelPart } from '../../chat/rich-response/parts/sources/sourceUtils.js'
+import { safeUrl } from '../../chat/rich-response/security/safeUrl.js'
+import {
+  isRichRendererEnabled,
+  shouldRenderInlineSources
+} from '../../config/richResponseFlags.js'
 
 function normalizeUrl(url) {
-  if (!url) return null
-  const trimmed = String(url).trim()
-  if (/^https?:\/\//i.test(trimmed) || /^mailto:/i.test(trimmed)) {
-    return trimmed
-  }
-  return null
+  return safeUrl(url)
 }
 
 function CitationBadge({ sourceId }) {
@@ -137,13 +146,13 @@ function DocumentPreview({ content }) {
   )
 }
 
-function CodeBlock({ className, children, artifactIntent = null }) {
+function CodeBlock({ className, children, documentContext = null }) {
   const [isCopied, setIsCopied] = useState(false)
   const normalizedLanguage = getCodeLanguage(className)
   const language = normalizedLanguage || 'Code'
   const content = String(children ?? '').replace(/\n$/, '')
 
-  if (isDocumentLike(content, normalizedLanguage, artifactIntent)) {
+  if (isDocumentLike(content, normalizedLanguage, documentContext)) {
     return <DocumentPreview content={content} />
   }
 
@@ -176,11 +185,13 @@ function CodeBlock({ className, children, artifactIntent = null }) {
   )
 }
 
-function ChatMessageContent({ content, metadata = null, showResearchActivity = true }) {
+export function LegacyChatMessageContent({ content, metadata = null, showResearchActivity = true }) {
   const sources = normalizeSources(metadata)
-  const blocks = normalizeStructuredBlocks(metadata)
-  const artifactIntent = metadata?.artifactIntent || metadata?.artifact_intent || null
-  const markdown = normalizeAssistantMarkdown(blocks.length ? stripTableArtifacts(content) : content)
+  const metadataBlocks = normalizeStructuredBlocks(metadata)
+  const recoveredBlocks = metadataBlocks.length ? [] : recoverMalformedTableBlocks(content)
+  const blocks = metadataBlocks.length ? metadataBlocks : recoveredBlocks
+  const markdownSource = recoveredBlocks.length ? stripRecoveredTableArtifacts(content) : content
+  const markdown = normalizeAssistantMarkdown(blocks.length ? stripTableArtifacts(markdownSource) : markdownSource)
 
   const renderStructuredBlock = (block, index) => {
     if (block.type === 'table') {
@@ -192,11 +203,11 @@ function ChatMessageContent({ content, metadata = null, showResearchActivity = t
     return null
   }
 
-  if (isStandaloneDocument(markdown, artifactIntent)) {
+  if (isStandaloneDocument(markdown, metadata)) {
     return (
       <div className="ai-markdown">
         <DocumentPreview content={markdown} />
-        <SourcesButton sources={sources} />
+        <SourcesButton sources={sources} metadata={metadata} />
         {showResearchActivity ? <ResearchActivity metadata={metadata} /> : null}
       </div>
     )
@@ -212,14 +223,14 @@ function ChatMessageContent({ content, metadata = null, showResearchActivity = t
             const safeHref = normalizeUrl(href)
             if (!safeHref) return <>{children}</>
             return (
-              <a href={safeHref} rel="noreferrer" target="_blank">
+              <a href={safeHref} rel="noopener noreferrer" target="_blank">
                 {children}
               </a>
             )
           },
           code: ({ inline, className, children }) => {
             if (inline) return <code>{children}</code>
-            return <CodeBlock className={className} artifactIntent={artifactIntent}>{children}</CodeBlock>
+            return <CodeBlock className={className} documentContext={metadata}>{children}</CodeBlock>
           },
           h1: ({ children }) => <h1>{children}</h1>,
           h2: ({ children }) => (
@@ -264,9 +275,55 @@ function ChatMessageContent({ content, metadata = null, showResearchActivity = t
           {blocks.map(renderStructuredBlock)}
         </div>
       ) : null}
-      <SourcesButton sources={sources} />
+      <SourcesButton sources={sources} metadata={metadata} />
       {showResearchActivity ? <ResearchActivity metadata={metadata} /> : null}
     </div>
+  )
+}
+
+function ChatMessageContent({ message = null, content, metadata = null, showResearchActivity = true }) {
+  const resolvedContent = message?.content ?? content
+  const resolvedMetadata = message?.metadata ?? metadata
+  const resolvedMessage = message || { content: resolvedContent, metadata: resolvedMetadata }
+
+  if (isRichRendererEnabled()) {
+    const renderSourcePanel = shouldRenderInlineSources()
+    const richSourcePanel = metadataToSourcePanelPart(resolvedMetadata)
+    const sources = normalizeSources(resolvedMetadata)
+    const drawerSources = sources.length ? sources : richSourcePanel?.sources || []
+    const legacyFallback = (
+      <LegacyChatMessageContent
+        content={resolvedContent}
+        metadata={resolvedMetadata}
+        showResearchActivity={showResearchActivity}
+      />
+    )
+    return (
+      <RichRendererErrorBoundary
+        fallback={legacyFallback}
+        message={resolvedMessage}
+        renderSourcePanel={renderSourcePanel}
+        resetKey={`${resolvedMessage?.id || 'message'}:${resolvedContent?.length || 0}:${resolvedMessage?.status || ''}`}
+      >
+        <OtanMessage
+          message={resolvedMessage}
+          content={resolvedContent}
+          metadata={resolvedMetadata}
+          showResearchActivity={showResearchActivity}
+          renderSourcePanel={renderSourcePanel}
+          defaultSourcesCollapsed
+        />
+        {!renderSourcePanel ? <SourcesButton sources={drawerSources} metadata={resolvedMetadata} /> : null}
+      </RichRendererErrorBoundary>
+    )
+  }
+
+  return (
+    <LegacyChatMessageContent
+      content={resolvedContent}
+      metadata={resolvedMetadata}
+      showResearchActivity={showResearchActivity}
+    />
   )
 }
 

@@ -54,7 +54,11 @@ test('detects standalone document-like answer only when artifact intent allows i
     'Дата: [дата]'
   ].join('\n')
 
-  assert.equal(isStandaloneDocument(input, { document_preview_allowed: true }), true)
+  assert.equal(isStandaloneDocument(input, {
+    artifactIntent: { document_preview_allowed: true },
+    answerPlan: { answer_type: 'document_template' },
+    responseStylePolicy: { markdown_policy: { use_document_block: true } }
+  }), true)
 })
 
 test('does not convert normal chat answer mentioning application into document', () => {
@@ -66,9 +70,14 @@ test('does not convert normal chat answer mentioning application into document',
 
 test('document code fence renders when artifact intent allows it', () => {
   const input = 'ЗАЯВЛЕНИЕ\nОт: [ФИО]\nДата: [дата]'
+  const metadata = {
+    artifactIntent: { document_preview_allowed: true },
+    answerPlan: { answer_type: 'document_template' },
+    responseStylePolicy: { markdown_policy: { use_document_block: true } }
+  }
 
-  assert.equal(isDocumentLike(input, 'document', { document_preview_allowed: true }), true)
-  assert.equal(shouldRenderDocumentPreview(input, 'document', { document_preview_allowed: true }), true)
+  assert.equal(isDocumentLike(input, 'document', metadata), true)
+  assert.equal(shouldRenderDocumentPreview(input, 'document', metadata), true)
 })
 
 test('document code fence does not render when artifact intent blocks it', () => {
@@ -83,8 +92,35 @@ test('old explicit document block fallback requires strong document structure', 
   const weak = 'Объяснение правовых рисков договора.'
 
   assert.equal(hasStrongDocumentStructure(strong), true)
-  assert.equal(shouldRenderDocumentPreview(strong, 'document'), true)
+  assert.equal(shouldRenderDocumentPreview(strong, 'document'), false)
   assert.equal(shouldRenderDocumentPreview(weak, 'document'), false)
+})
+
+test('document preview is blocked when document_forbidden is true', () => {
+  const input = 'ЗАЯВЛЕНИЕ\nОт: [ФИО]\nДата: [дата]'
+  const metadata = {
+    artifactIntent: { document_preview_allowed: true, document_forbidden: true },
+    answerPlan: { answer_type: 'document_template' },
+    responseStylePolicy: { markdown_policy: { use_document_block: true } }
+  }
+
+  assert.equal(isDocumentLike(input, 'document', metadata), false)
+  assert.equal(shouldRenderDocumentPreview(input, 'document', metadata), false)
+})
+
+test('document preview requires answer plan and style permission', () => {
+  const input = 'ЗАЯВЛЕНИЕ\nОт: [ФИО]\nДата: [дата]'
+
+  assert.equal(shouldRenderDocumentPreview(input, 'document', {
+    artifactIntent: { document_preview_allowed: true },
+    answerPlan: { answer_type: 'risk_analysis' },
+    responseStylePolicy: { markdown_policy: { use_document_block: true } }
+  }), false)
+  assert.equal(shouldRenderDocumentPreview(input, 'document', {
+    artifactIntent: { document_preview_allowed: true },
+    answerPlan: { answer_type: 'document_template' },
+    responseStylePolicy: { markdown_policy: { use_document_block: false } }
+  }), false)
 })
 
 test('legal language does not auto-render as document preview', () => {
