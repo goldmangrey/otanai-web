@@ -57,5 +57,49 @@ export function saveChatState(namespace, state) {
   if (!canUseLocalStorage()) return
 
   const storageKey = getChatStorageKey(namespace)
-  window.localStorage.setItem(storageKey, JSON.stringify(state))
+  try {
+    window.localStorage.setItem(storageKey, JSON.stringify(state))
+  } catch (error) {
+    if (!isQuotaExceededError(error)) {
+      throw error
+    }
+
+    const compactState = compactChatStateForStorage(state)
+    try {
+      window.localStorage.setItem(storageKey, JSON.stringify(compactState))
+    } catch {
+      window.localStorage.removeItem(storageKey)
+    }
+  }
+}
+
+function isQuotaExceededError(error) {
+  return error?.name === 'QuotaExceededError' || error?.code === 22 || error?.code === 1014
+}
+
+function compactChatStateForStorage(state) {
+  const chats = Array.isArray(state?.chats) ? state.chats : []
+  const compactChats = chats
+    .slice()
+    .sort((a, b) => String(b.updatedAt || '').localeCompare(String(a.updatedAt || '')))
+    .slice(0, 8)
+    .map((chat) => ({
+      ...chat,
+      messages: Array.isArray(chat.messages)
+        ? chat.messages.slice(-20).map((message) => ({
+          ...message,
+          assistantActivityEvents: [],
+          assistantActivitySummary: [],
+          metadata: null
+        }))
+        : []
+    }))
+
+  return {
+    activeChatId: compactChats.some((chat) => chat.id === state?.activeChatId)
+      ? state.activeChatId
+      : compactChats[0]?.id || state?.activeChatId,
+    chats: compactChats,
+    deletedChatIds: []
+  }
 }

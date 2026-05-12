@@ -39,13 +39,21 @@ export async function sendChatRequest({
         throw new Error(data?.error || data?.message || 'The assistant request failed.')
     }
 
+    const metadata = data?.metadata || null
     const assistantText = data?.assistantText || data?.text || data?.message
+    if (metadata?.rerouteToLegalResearch === true) {
+        return {
+            assistantText: typeof assistantText === 'string' ? assistantText : '',
+            metadata
+        }
+    }
+
     if (!assistantText || typeof assistantText !== 'string') {
         throw new Error('Backend returned an invalid assistant response.')
     }
 
     return {
         assistantText,
-        metadata: data?.metadata || null
+        metadata
     }
 }

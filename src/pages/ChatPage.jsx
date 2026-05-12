@@ -3,6 +3,8 @@ import AppSidebar from '../components/chat/AppSidebar.jsx'
 import AuthBenefitModal from '../components/chat/AuthBenefitModal.jsx'
 import AuthModal from '../components/chat/AuthModal.jsx'
 import AnswerFeedbackControls from '../components/chat/AnswerFeedbackControls.jsx'
+import AssistantActivityPill from '../components/chat/AssistantActivityPill.jsx'
+import AssistantFollowupChips from '../components/chat/AssistantFollowupChips.jsx'
 import ChatComposer from '../components/chat/ChatComposer.jsx'
 import ChatMessageContent from '../components/chat/ChatMessageContent.jsx'
 import ChatTopbar from '../components/chat/ChatTopbar.jsx'
@@ -12,6 +14,7 @@ import { useLocalChats } from '../chat/hooks/useLocalChats.js'
 import { copyText } from '../chat/utils/clipboard.js'
 import { useCloudSync } from '../chat/persistence/useCloudSync.js'
 import { useChatRuntime } from '../chat/hooks/useChatRuntime.js'
+import { hasAssistantActivityEvents } from '../chat/utils/assistantActivity.js'
 import {
   dismissAuthBenefitModal,
   hasDismissedAuthBenefitModal,
@@ -317,6 +320,9 @@ function ChatPageContent() {
                 const showActions = message.content || canRegenerate
                 const isLoading = message.status === 'loading'
                 const hasLiveStreamingContent = isLoading && (message.content || message.metadata)
+                const hasNpaActivity =
+                  message.role === 'assistant' &&
+                  hasAssistantActivityEvents(message.assistantActivityEvents?.length ? message.assistantActivityEvents : message.metadata)
 
                 return (
                   <article
@@ -326,11 +332,19 @@ function ChatPageContent() {
                     <div className={`chat-message__body ${isLoading ? 'chat-message__body--loading' : ''}`}>
                       {isLoading ? (
                         <>
-                          <StreamingActivity
-                            message={message}
-                            metadata={message.metadata}
-                            isStreaming={isRequestActive}
-                          />
+                          {hasNpaActivity ? (
+                            <AssistantActivityPill
+                              events={message.assistantActivityEvents || []}
+                              metadata={message.metadata}
+                              isStreaming={isRequestActive}
+                            />
+                          ) : (
+                            <StreamingActivity
+                              message={message}
+                              metadata={message.metadata}
+                              isStreaming={isRequestActive}
+                            />
+                          )}
                           {hasLiveStreamingContent ? (
                             <ChatMessageContent
                               message={message}
@@ -367,11 +381,28 @@ function ChatPageContent() {
                           </div>
                         </div>
                       ) : (
-                        <ChatMessageContent
-                          message={message}
-                          content={message.content}
-                          metadata={message.metadata}
-                        />
+                        <>
+                          {hasNpaActivity ? (
+                            <AssistantActivityPill
+                              events={message.assistantActivityEvents || []}
+                              metadata={message.metadata}
+                              isStreaming={false}
+                            />
+                          ) : null}
+                          <ChatMessageContent
+                            message={message}
+                            content={message.content}
+                            metadata={message.metadata}
+                          />
+                          {message.role === 'assistant' ? (
+                            <AssistantFollowupChips
+                              followups={message.followups || []}
+                              metadata={message.metadata}
+                              disabled={isRequestActive}
+                              onSelect={(query) => handleSendMessage(query)}
+                            />
+                          ) : null}
+                        </>
                       )}
                     </div>
 

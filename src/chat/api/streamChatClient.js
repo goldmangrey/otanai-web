@@ -5,6 +5,10 @@ const KNOWN_EVENT_TYPES = new Set([
   'tool_status',
   'source_found',
   'quality_update',
+  'assistant_activity',
+  'qdrant_search_started',
+  'qdrant_results_found',
+  'report_section_ready',
   'block_start',
   'markdown_delta',
   'block_end',
@@ -110,6 +114,9 @@ function dispatchEnvelope(envelope, callbacks) {
     case 'quality_update':
       callbacks.onQualityUpdate?.(payload, envelope)
       break
+    case 'assistant_activity':
+      callbacks.onAssistantActivity?.(payload, envelope)
+      break
     case 'chunk':
       callbacks.onChunk?.(String(payload.delta || ''), payload, envelope)
       break
@@ -146,6 +153,7 @@ function dispatchEnvelope(envelope, callbacks) {
 
 export async function sendStreamingChatRequest({
   apiBaseUrl,
+  endpointPath = '/v1/stream-chat',
   token,
   payload,
   signal,
@@ -153,6 +161,7 @@ export async function sendStreamingChatRequest({
   onActivity,
   onSourceFound,
   onQualityUpdate,
+  onAssistantActivity,
   onChunk,
   onDone,
   onError,
@@ -165,6 +174,7 @@ export async function sendStreamingChatRequest({
     onActivity,
     onSourceFound,
     onQualityUpdate,
+    onAssistantActivity,
     onChunk,
     onDone,
     onError,
@@ -173,7 +183,7 @@ export async function sendStreamingChatRequest({
   }
 
   try {
-    const response = await fetch(`${normalizedBaseUrl}/v1/stream-chat`, {
+    const response = await fetch(`${normalizedBaseUrl}${endpointPath}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -181,7 +191,7 @@ export async function sendStreamingChatRequest({
       },
       body: JSON.stringify({
         ...payload,
-        protocolVersion: payload?.protocolVersion || 3
+        protocolVersion: payload?.protocolVersion || 2
       }),
       signal
     })

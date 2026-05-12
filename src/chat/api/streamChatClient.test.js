@@ -58,6 +58,14 @@ test('sendStreamingChatRequest dispatches known event callbacks and ignores unkn
       envelope('activity', { id: 'act_1' }),
       envelope('source_found', { source_id: 'src_1' }),
       envelope('quality_update', { evidence_status: 'sufficient' }),
+      envelope('assistant_activity', {
+        type: 'assistant_activity',
+        stage: 'compose_answer',
+        message: 'Формирую ответ простым языком.',
+        status: 'done',
+        safe_to_show: true,
+        order: 80
+      }),
       envelope('chunk', { delta: 'hello ' }),
       envelope('done', { metadata: { sources: [] } })
     ])
@@ -72,6 +80,7 @@ test('sendStreamingChatRequest dispatches known event callbacks and ignores unkn
       onActivity: () => calls.push('activity'),
       onSourceFound: () => calls.push('source_found'),
       onQualityUpdate: () => calls.push('quality_update'),
+      onAssistantActivity: (payload) => calls.push(`assistant_activity:${payload.stage}`),
       onChunk: (delta) => calls.push(`chunk:${delta}`),
       onDone: () => calls.push('done')
     })
@@ -79,7 +88,15 @@ test('sendStreamingChatRequest dispatches known event callbacks and ignores unkn
     globalThis.fetch = originalFetch
   }
 
-  assert.deepEqual(calls, ['meta', 'activity', 'source_found', 'quality_update', 'chunk:hello ', 'done'])
+  assert.deepEqual(calls, [
+    'meta',
+    'activity',
+    'source_found',
+    'quality_update',
+    'assistant_activity:compose_answer',
+    'chunk:hello ',
+    'done'
+  ])
 })
 
 test('sendStreamingChatRequest dispatches v4 events and preserves requested protocol version', async () => {

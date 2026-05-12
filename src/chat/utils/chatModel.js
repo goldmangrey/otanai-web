@@ -135,6 +135,22 @@ export function normalizeChat(chat) {
       error: message.error || '',
       requestId: message.requestId || null,
       retryable: Boolean(message.retryable),
+      assistantActivityEvents: Array.isArray(message.assistantActivityEvents)
+        ? message.assistantActivityEvents
+        : Array.isArray(message.metadata?.assistantActivityEvents)
+          ? message.metadata.assistantActivityEvents
+          : [],
+      assistantActivitySummary: Array.isArray(message.assistantActivitySummary)
+        ? message.assistantActivitySummary
+        : Array.isArray(message.metadata?.assistantActivityPublicSummary)
+          ? message.metadata.assistantActivityPublicSummary
+          : [],
+      followups: Array.isArray(message.followups)
+        ? message.followups
+        : Array.isArray(message.metadata?.assistantFollowups)
+          ? message.metadata.assistantFollowups
+          : [],
+      assistantConversationContext: message.assistantConversationContext || message.metadata?.assistantConversationContext || null,
       metadata: message.metadata || null
     }))
   }
